@@ -31,6 +31,7 @@ class SavedLaSo(models.Model):
     gioitinh = models.CharField(max_length=10, verbose_name="Giới tính")  # 'nam' hoặc 'nu'
     amlich = models.BooleanField(default=False, verbose_name="Âm lịch")
     muigio = models.IntegerField(default=7, verbose_name="Múi giờ")
+    namxem = models.IntegerField(null=True, blank=True, verbose_name="Năm xem")
 
     # Dữ liệu lá số (JSON) - Lưu toàn bộ kết quả đã tính
     chart_data = models.JSONField(verbose_name="Dữ liệu lá số", help_text="JSON chứa thienBan và thapNhiCung")

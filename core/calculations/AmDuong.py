@@ -532,11 +532,29 @@ def timHoaLinh(chiNamSinh, gioSinh, gioiTinh, amDuongNamSinh):
 
 
 def timThienKhoi(canNam):
-    khoiViet = [None, 2, 1, 12, 10, 8, 1, 8, 7, 6, 4]
+    # Giáp, Mậu -> Sửu (2)
+    # Ất, Kỷ -> Tý (1)
+    # Bính, Đinh -> Hợi (12)
+    # Canh, Tân -> Ngọ (7)
+    # Nhâm, Quý -> Mão (4)
+    khoiViet = [None, 2, 1, 12, 12, 2, 1, 7, 7, 4, 4]
     try:
         return khoiViet[canNam]
     except:
         raise Exception("Không tìm được vị trí Khôi-Việt")
+
+
+def timThienViet(canNam):
+    # Giáp, Mậu -> Mùi (8)
+    # Ất, Kỷ -> Thân (9)
+    # Bính, Đinh -> Dậu (10)
+    # Canh, Tân -> Dần (3)
+    # Nhâm, Quý -> Tỵ (6)
+    thienViet = [None, 8, 9, 10, 10, 8, 9, 3, 3, 6, 6]
+    try:
+        return thienViet[canNam]
+    except:
+        raise Exception("Không tìm được vị trí Thiên Việt")
 
 
 def timThienQuanThienPhuc(canNam):

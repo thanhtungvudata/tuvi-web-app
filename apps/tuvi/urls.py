@@ -2,13 +2,14 @@ from django.urls import re_path
 
 from apps.tuvi.views import (
     api, lasotuvi_new_index, lasotuvi_new_result, lasotuvi_new_manage,
-    save_laso, get_lasos, get_laso_detail, get_folders,
+    save_laso, update_laso, get_lasos, get_laso_detail, get_folders,
     delete_laso, delete_folder, toggle_favorite_laso, move_laso
 )
 
 urlpatterns = [
     re_path(r'^api$', api, name='lasotuvi_api'),
     re_path(r'^api/save-laso/$', save_laso, name='save_laso'),
+    re_path(r'^api/update-laso/$', update_laso, name='update_laso'),
     re_path(r'^api/lasos/$', get_lasos, name='get_lasos'),
     re_path(r'^api/laso/(?P<laso_id>\d+)/$', get_laso_detail, name='get_laso_detail'),
     re_path(r'^api/laso/(?P<laso_id>\d+)/delete/$', delete_laso, name='delete_laso'),

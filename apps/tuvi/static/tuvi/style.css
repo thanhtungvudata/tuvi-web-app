@@ -7,22 +7,24 @@
 body {
     font-family: 'Open Sans', sans-serif;
     font-weight: 600;
-    background-color: #f5f5f5;
+    background-color: #1a1a2e;
     padding: 20px;
+    min-height: 100vh;
 }
 
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    background: white;
+    background: #2d2d44;
     padding: 30px;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    overflow: visible;
 }
 
 .main-title {
     text-align: center;
-    color: #d35400;
+    color: #ff6b35;
     margin-bottom: 30px;
     font-size: 28px;
     text-transform: uppercase;
@@ -30,10 +32,11 @@ body {
 
 /* Form styles */
 .form-container {
-    background: #fef9f3;
+    background: #3d3d5c;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 30px;
+    border: 1px solid #4a4a6a;
 }
 
 /* Wrapper cho trang lập lá số mới - giới hạn chiều rộng */
@@ -52,15 +55,24 @@ body {
     font-weight: bold;
     margin-right: 10px;
     min-width: 180px;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .form-group input[type="text"],
 .form-group select {
     padding: 8px 12px;
-    border: 1px solid #bdc3c7;
+    border: 1px solid #555;
     border-radius: 4px;
     font-size: 14px;
+    background: #2d2d44;
+    color: #e0e0e0;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: #363652;
 }
 
 .form-group select {
@@ -141,6 +153,7 @@ body {
     display: flex;
     gap: 20px;
     align-items: flex-start;
+    overflow: visible;
 }
 
 /* Sidebar bên trái chứa các box */
@@ -154,14 +167,15 @@ body {
 
 /* Box sửa thông tin lá số */
 .edit-info-box {
-    background: #e8f5e9;
+    background: #3d3d5c;
     border-radius: 6px;
     padding: 15px;
+    border: 1px solid #4a4a6a;
 }
 
 .edit-info-box h3 {
     font-size: 14px;
-    color: #2c3e50;
+    color: #e0e0e0;
     margin: 0 0 12px 0;
     font-weight: 600;
     text-align: center;
@@ -182,7 +196,7 @@ body {
 
 .edit-form-group > label:not(.checkbox-label) {
     font-size: 12px;
-    color: #2c3e50;
+    color: #b0b0b0;
     font-weight: 500;
     white-space: nowrap;
     min-width: fit-content;
@@ -192,10 +206,19 @@ body {
 .edit-form-group select:not(.date-select) {
     flex: 1;
     padding: 6px 8px;
-    border: 1px solid #c8e6c9;
+    border: 1px solid #555;
     border-radius: 4px;
     font-size: 12px;
     box-sizing: border-box;
+    background: #2d2d44;
+    color: #e0e0e0;
+}
+
+.edit-form-group input[type="text"]:focus,
+.edit-form-group select:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: #363652;
 }
 
 .date-inputs {
@@ -219,7 +242,7 @@ body {
 
 .date-label {
     font-size: 10px;
-    color: #7f8c8d;
+    color: #999;
     margin-bottom: 3px;
     font-weight: 500;
 }
@@ -228,16 +251,32 @@ body {
     width: 100%;
     padding: 6px 4px;
     font-size: 12px;
-    border: 1px solid #c8e6c9;
+    border: 1px solid #555;
     border-radius: 4px;
+    background: #2d2d44;
+    color: #e0e0e0;
+}
+
+.date-select:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: #363652;
 }
 
 .year-input {
     width: 100%;
     padding: 6px 4px;
     font-size: 12px;
-    border: 1px solid #c8e6c9;
+    border: 1px solid #555;
     border-radius: 4px;
+    background: #2d2d44;
+    color: #e0e0e0;
+}
+
+.year-input:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: #363652;
 }
 
 .checkbox-label {
@@ -246,6 +285,7 @@ body {
     gap: 4px;
     font-size: 11px;
     margin-top: 4px;
+    color: #b0b0b0;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -273,15 +313,16 @@ body {
 
 /* Box lưu lá số */
 .save-laso-box {
-    background: #e3f2fd;
+    background: #3d3d5c;
     border-radius: 6px;
     padding: 15px;
     text-align: center;
+    border: 1px solid #4a4a6a;
 }
 
 .save-laso-box h3 {
     font-size: 14px;
-    color: #2c3e50;
+    color: #e0e0e0;
     margin: 0 0 10px 0;
     font-weight: 600;
 }
@@ -349,14 +390,15 @@ body {
 
 /* Display options - tùy chọn hiển thị */
 .display-options {
-    background: #fff3cd;
+    background: #3d3d5c;
     border-radius: 6px;
     padding: 15px 20px;
+    border: 1px solid #4a4a6a;
 }
 
 .display-options h3 {
     font-size: 14px;
-    color: #2c3e50;
+    color: #e0e0e0;
     margin: 0 0 10px 0;
     font-weight: 600;
     text-align: center;
@@ -368,12 +410,14 @@ body {
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    padding: 10px;
+    overflow: visible;
 }
 
 .option-label {
     font-size: 15px;
     font-weight: bold;
-    color: #2c3e50;
+    color: #e0e0e0;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -393,33 +437,47 @@ body {
 .option-hint {
     font-size: 13px;
     font-weight: normal;
-    color: #7f8c8d;
+    color: #999;
     font-style: italic;
 }
 
 .display-options:hover {
-    background: #ffeaa7;
+    background: #4a4a6a;
 }
 
 /* Grid layout cho 12 cung + thiên bàn */
 .lasotuvi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 155px);
     grid-template-rows: repeat(4, 200px);
-    gap: 2px;
+    gap: 1px;
     background: #2c3e50;
-    border: 2px solid #2c3e50;
-    width: 800px;
+    box-shadow:
+        0 0 0 3px #fef9f3,
+        0 0 0 4px #2c3e50;
+    width: 623px;
     flex-shrink: 0;
+    position: relative;
 }
 
-/* Cung styles */
+.lasotuvi-grid::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border: 1px solid #2c3e50;
+    pointer-events: none;
+}
+
+/* Cung styles - HOÀN TOÀN KHÔNG có border */
 .cung {
-    background: #fff;
-    padding: 10px;
-    height: 200px;
+    background: #fef9f3;
+    padding: 8px;
+    height: 100%;
     position: relative;
-    border: 1px solid #ecf0f1;
+    border: none;
     font-size: 12px;
     font-weight: 700 !important;
     overflow: hidden;
@@ -427,13 +485,13 @@ body {
 }
 
 .cung:hover {
-    background: #fef9f3;
+    background: #f9e8d3;
     cursor: pointer;
 }
 
-/* Thiên bàn ở giữa, chiếm 2 hàng x 2 cột */
+/* Thiên bàn - KHÔNG có border, KHÔNG có margin, để gap tự nhiên tạo viền */
 .thien-ban {
-    background: linear-gradient(135deg, #fef9f3 0%, #f9e8d3 100%);
+    background: #fef9f3;
     padding: 15px;
     grid-column: 2 / 4;
     grid-row: 2 / 4;
@@ -441,9 +499,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 402px;
     overflow: hidden;
     box-sizing: border-box;
+    border: none;
 }
 
 .thien-ban h2 {
@@ -487,7 +545,7 @@ body {
 
 /* Tên cung (địa chi) - góc trái trên */
 .cung-ten-chi {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: bold;
     color: #e67e22;
     flex: 0 0 auto;
@@ -495,7 +553,7 @@ body {
 
 /* Tên cung chủ - giữa trên */
 .cung-ten-chu {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: bold;
     color: #2c3e50;
     text-transform: uppercase;
@@ -506,7 +564,7 @@ body {
 
 /* Tuổi đại hạn - góc phải trên */
 .cung-dai-han {
-    font-size: 11px;
+    font-size: 9px;
     font-weight: bold;
     color: #c0392b;
     flex: 0 0 auto;
@@ -526,7 +584,7 @@ body {
     left: 0;
     right: 0;
     text-align: center;
-    font-size: 11px;
+    font-size: 9px;
     line-height: 1.3;
     font-weight: bold;
 }
@@ -566,7 +624,7 @@ body {
 
 .sao-item {
     margin: 2px 0;
-    font-size: 11px;
+    font-size: 9px;
     line-height: 1.3;
     text-transform: capitalize;
     font-weight: 600;
@@ -630,16 +688,17 @@ body {
 }
 
 .modal-content {
-    background-color: white;
+    background-color: #2d2d44;
     margin: 10% auto;
     border-radius: 8px;
     width: 400px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid #3d3d5c;
 }
 
 .modal-header {
     padding: 20px;
-    border-bottom: 1px solid #ecf0f1;
+    border-bottom: 1px solid #3d3d5c;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -648,7 +707,7 @@ body {
 .modal-header h3 {
     margin: 0;
     font-size: 18px;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .modal-close {
@@ -660,7 +719,7 @@ body {
 }
 
 .modal-close:hover {
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .modal-body {
@@ -674,7 +733,7 @@ body {
 .modal-body label {
     display: block;
     font-size: 14px;
-    color: #2c3e50;
+    color: #e0e0e0;
     margin-bottom: 6px;
     font-weight: 500;
 }
@@ -683,15 +742,23 @@ body {
 .modal-body select {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid #bdc3c7;
+    border: 1px solid #3d3d5c;
+    background-color: #1a1a2e;
+    color: #e0e0e0;
     border-radius: 4px;
     font-size: 14px;
     box-sizing: border-box;
 }
 
+.modal-body input[type="text"]:focus,
+.modal-body select:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
 .modal-footer {
     padding: 15px 20px;
-    border-top: 1px solid #ecf0f1;
+    border-top: 1px solid #3d3d5c;
     display: flex;
     justify-content: flex-end;
     gap: 10px;

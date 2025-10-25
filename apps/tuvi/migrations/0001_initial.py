@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 ('is_favorite', models.BooleanField(default=False, verbose_name='Yêu thích')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Ngày tạo')),
                 ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Ngày cập nhật')),
-                ('folder', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='lasos', to='lasotuvi_new.folder', verbose_name='Thư mục')),
+                ('folder', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='lasos', to='tuvi.folder', verbose_name='Thư mục')),
             ],
             options={
                 'verbose_name': 'Lá số đã lưu',

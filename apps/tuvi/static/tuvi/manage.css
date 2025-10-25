@@ -6,17 +6,18 @@ body {
 /* Tabs container */
 .tabs-container {
     margin-top: 30px;
-    background: white;
+    background: #2d2d44;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     overflow: hidden;
+    border: 1px solid #3d3d5c;
 }
 
 /* Tabs navigation */
 .tabs-nav {
     display: flex;
-    border-bottom: 2px solid #ecf0f1;
-    background: #f8f9fa;
+    border-bottom: 2px solid #3d3d5c;
+    background: #1a1a2e;
 }
 
 .tab-btn {
@@ -26,20 +27,20 @@ body {
     border: none;
     font-size: 15px;
     font-weight: 600;
-    color: #7f8c8d;
+    color: #999;
     cursor: pointer;
     transition: all 0.3s;
     position: relative;
 }
 
 .tab-btn:hover {
-    background: #e8f4f8;
-    color: #2980b9;
+    background: #2d2d44;
+    color: #ff6b35;
 }
 
 .tab-btn.active {
-    color: #2980b9;
-    background: white;
+    color: #ff6b35;
+    background: #2d2d44;
 }
 
 .tab-btn.active::after {
@@ -49,7 +50,7 @@ body {
     left: 0;
     right: 0;
     height: 3px;
-    background: #2980b9;
+    background: #ff6b35;
 }
 
 /* Tab content */
@@ -73,23 +74,23 @@ body {
 
 .view-btn {
     padding: 8px 12px;
-    background: white;
-    border: 1px solid #ecf0f1;
+    background: #3d3d5c;
+    border: 1px solid #4a4a6a;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s;
-    color: #7f8c8d;
+    color: #b0b0b0;
 }
 
 .view-btn:hover {
-    background: #f8f9fa;
-    border-color: #2980b9;
-    color: #2980b9;
+    background: #4a4a6a;
+    border-color: #ff6b35;
+    color: #ff6b35;
 }
 
 .view-btn.active {
-    background: #2980b9;
-    border-color: #2980b9;
+    background: #ff6b35;
+    border-color: #ff6b35;
     color: white;
 }
 
@@ -100,7 +101,7 @@ body {
 /* Empty message */
 .empty-message {
     text-align: center;
-    color: #95a5a6;
+    color: #888;
     font-size: 16px;
     padding: 60px 20px;
 }
@@ -141,8 +142,8 @@ body {
 }
 
 .laso-item {
-    background: #f8f9fa;
-    border: 1px solid #ecf0f1;
+    background: #3d3d5c;
+    border: 1px solid #4a4a6a;
     border-radius: 6px;
     padding: 15px;
     cursor: pointer;
@@ -156,8 +157,9 @@ body {
 
 
 .laso-item:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-color: #2980b9;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+    border-color: #ff6b35;
+    background: #4a4a6a;
 }
 
 .laso-content {
@@ -166,19 +168,19 @@ body {
 
 .laso-item h4 {
     margin: 0 0 10px 0;
-    color: #2c3e50;
+    color: #e0e0e0;
     font-size: 16px;
 }
 
 .laso-item .laso-info {
     font-size: 13px;
-    color: #7f8c8d;
+    color: #b0b0b0;
     margin: 5px 0;
 }
 
 .laso-item .laso-date {
     font-size: 12px;
-    color: #95a5a6;
+    color: #888;
     margin-top: 10px;
 }
 
@@ -215,8 +217,8 @@ body {
 }
 
 .folder-item {
-    background: #f8f9fa;
-    border: 1px solid #ecf0f1;
+    background: #3d3d5c;
+    border: 1px solid #4a4a6a;
     border-radius: 6px;
     padding: 15px;
     cursor: pointer;
@@ -235,8 +237,9 @@ body {
 }
 
 .folder-item:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-color: #2980b9;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+    border-color: #ff6b35;
+    background: #4a4a6a;
 }
 
 .folder-content {
@@ -248,13 +251,13 @@ body {
 
 .folder-item h4 {
     margin: 10px 0;
-    color: #2c3e50;
+    color: #e0e0e0;
     font-size: 16px;
 }
 
 .folder-item .folder-count {
     font-size: 13px;
-    color: #7f8c8d;
+    color: #b0b0b0;
 }
 
 .folder-icon {
@@ -272,8 +275,8 @@ body {
 
 /* Favorite button */
 .btn-favorite {
-    background: #f8f9fa;
-    border: 1px solid #ecf0f1;
+    background: #2d2d44;
+    border: 1px solid #4a4a6a;
     border-radius: 4px;
     padding: 6px 10px;
     font-size: 16px;
@@ -285,18 +288,18 @@ body {
 }
 
 .btn-favorite:hover {
-    background: #e8f4f8;
-    border-color: #bdc3c7;
+    background: #363652;
+    border-color: #5a5a7a;
 }
 
 .btn-favorite.favorited {
     color: #f39c12;
     border-color: #f39c12;
-    background: #fef5e7;
+    background: #3d3520;
 }
 
 .btn-favorite.favorited:hover {
-    background: #fdebd0;
+    background: #4d4530;
     border-color: #e67e22;
 }
 
@@ -306,14 +309,14 @@ body {
 
 /* Move button */
 .btn-move {
-    background: #f8f9fa;
-    border: 1px solid #ecf0f1;
+    background: #2d2d44;
+    border: 1px solid #4a4a6a;
     border-radius: 4px;
     padding: 6px 12px;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
-    color: #7f8c8d;
+    color: #b0b0b0;
     flex-shrink: 0;
     font-weight: 500;
 }
@@ -321,7 +324,7 @@ body {
 .btn-move:hover {
     color: #3498db;
     border-color: #3498db;
-    background: #e8f4f8;
+    background: #2a3a4a;
 }
 
 .btn-move:active {
@@ -330,14 +333,14 @@ body {
 
 /* Delete button */
 .btn-delete {
-    background: #f8f9fa;
-    border: 1px solid #ecf0f1;
+    background: #2d2d44;
+    border: 1px solid #4a4a6a;
     border-radius: 4px;
     padding: 6px 12px;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
-    color: #7f8c8d;
+    color: #b0b0b0;
     flex-shrink: 0;
     font-weight: 500;
 }
@@ -345,7 +348,7 @@ body {
 .btn-delete:hover {
     color: #e74c3c;
     border-color: #e74c3c;
-    background: #ffebee;
+    background: #3a2525;
 }
 
 .btn-delete:active {
@@ -381,38 +384,42 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
 .modal-content {
-    background: white;
+    background: #2d2d44;
     padding: 30px;
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     min-width: 400px;
+    border: 1px solid #4a4a6a;
 }
 
 .modal-content h3 {
     margin: 0 0 20px 0;
-    color: #2c3e50;
+    color: #e0e0e0;
     font-size: 20px;
 }
 
 .folder-select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #4a4a6a;
     border-radius: 4px;
     font-size: 14px;
     margin-bottom: 20px;
+    background: #3d3d5c;
+    color: #e0e0e0;
 }
 
 .folder-select:focus {
     outline: none;
-    border-color: #3498db;
+    border-color: #ff6b35;
+    background: #4a4a6a;
 }
 
 .modal-buttons {
@@ -442,12 +449,12 @@ body {
 }
 
 .btn-cancel {
-    background: #95a5a6;
+    background: #5a5a7a;
     color: white;
 }
 
 .btn-cancel:hover {
-    background: #7f8c8d;
+    background: #6a6a8a;
 }
 
 .btn-confirm:active,
@@ -464,19 +471,20 @@ body {
 }
 
 .btn-back {
-    background: #ecf0f1;
-    border: none;
+    background: #3d3d5c;
+    border: 1px solid #4a4a6a;
     border-radius: 4px;
     padding: 8px 15px;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 500;
-    color: #2c3e50;
+    color: #e0e0e0;
 }
 
 .btn-back:hover {
-    background: #bdc3c7;
+    background: #4a4a6a;
+    border-color: #5a5a7a;
 }
 
 .btn-back:active {
@@ -485,6 +493,6 @@ body {
 
 .folder-title {
     margin: 0;
-    color: #2c3e50;
+    color: #e0e0e0;
     font-size: 20px;
 }

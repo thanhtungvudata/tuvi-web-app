@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lá Số Tử Vi - Kết quả</title>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="{% static 'tuvi/style.css' %}?v=5" rel="stylesheet">
+    <link href="{% static 'tuvi/style.css' %}?v=200" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -108,6 +108,14 @@
                                 </select>
                             </div>
 
+                            <div class="edit-form-group">
+                                <label>Năm xem:</label>
+                                <input type="number" name="namxem" value="{{ namxem }}" placeholder="Nhập năm xem" min="1900" max="2100">
+                            </div>
+
+                            <!-- Hidden input to preserve laso_id when updating -->
+                            <input type="hidden" name="laso_id" id="hidden-laso-id" value="">
+
                             <button type="submit" class="btn-edit-submit">Cập nhật lá số</button>
                         </form>
                     </div>
@@ -176,7 +184,7 @@
     <div id="save-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Lưu lá số vào thư mục</h3>
+                <h3>Lưu lá số mới</h3>
                 <span class="modal-close">&times;</span>
             </div>
             <div class="modal-body">
@@ -226,8 +234,9 @@
     </div>
 
     <script>
-        // Biến global để lưu laso_id
+        // Biến global để lưu laso_id và thông tin laso
         let currentLasoId = null;
+        let currentLaso = null;
 
         // Tự động load data khi trang load
         document.addEventListener('DOMContentLoaded', function() {
@@ -237,21 +246,39 @@
 
             // Nếu có laso_id, load từ database trước
             if (currentLasoId) {
+                console.log('DEBUG: Loading laso_id:', currentLasoId);
+                // Set hidden input để giữ laso_id khi submit form
+                const hiddenLasoIdInput = document.getElementById('hidden-laso-id');
+                if (hiddenLasoIdInput) {
+                    hiddenLasoIdInput.value = currentLasoId;
+                }
+
                 fetch(`/api/laso/${currentLasoId}/`)
                     .then(response => response.json())
                     .then(data => {
+                        console.log('DEBUG: API response:', data);
                         if (data.success && data.laso.chart_data) {
                             const laso = data.laso;
+                            // Lưu vào biến global
+                            currentLaso = laso;
+                            console.log('DEBUG: Set currentLaso to:', currentLaso);
 
                             // Điền thông tin vào form
-                            document.querySelector('input[name="hoten"]').value = laso.hoten || '';
-                            document.querySelector('select[name="ngaysinh"]').value = laso.ngaysinh || '';
-                            document.querySelector('select[name="thangsinh"]').value = laso.thangsinh || '';
-                            document.querySelector('input[name="namsinh"]').value = laso.namsinh || '';
-                            document.querySelector('select[name="giosinh"]').value = laso.giosinh || '';
-                            document.querySelector('select[name="gioitinh"]').value = laso.gioitinh || '';
-                            document.querySelector('input[name="amlich"]').checked = laso.amlich || false;
-                            document.querySelector('select[name="muigio"]').value = laso.muigio || 7;
+                            // NOTE: Ưu tiên URL params nếu có (khi user click "Cập nhật lá số")
+                            document.querySelector('input[name="hoten"]').value = urlParams.get('hoten') || laso.hoten || '';
+                            document.querySelector('select[name="ngaysinh"]').value = urlParams.get('ngaysinh') || laso.ngaysinh || '';
+                            document.querySelector('select[name="thangsinh"]').value = urlParams.get('thangsinh') || laso.thangsinh || '';
+                            document.querySelector('input[name="namsinh"]').value = urlParams.get('namsinh') || laso.namsinh || '';
+                            document.querySelector('select[name="giosinh"]').value = urlParams.get('giosinh') || laso.giosinh || '';
+                            document.querySelector('select[name="gioitinh"]').value = urlParams.get('gioitinh') || laso.gioitinh || '';
+                            document.querySelector('input[name="amlich"]').checked = urlParams.get('amlich') === 'on' ? true : (laso.amlich || false);
+                            document.querySelector('select[name="muigio"]').value = urlParams.get('muigio') || laso.muigio || 7;
+                            // NOTE: Ưu tiên namxem từ URL params (khi user thay đổi và click "Cập nhật lá số")
+                            const namxemInput = document.querySelector('input[name="namxem"]');
+                            const namxemFromUrl = urlParams.get('namxem');
+                            if (namxemInput) {
+                                namxemInput.value = namxemFromUrl || laso.namxem || '';
+                            }
 
                             // Cập nhật trạng thái yêu thích cho nút
                             const btnFavorite = document.getElementById('btn-favorite-laso');
@@ -260,8 +287,31 @@
                             }
 
                             // Render lá số
-                            const chartData = laso.chart_data;
-                            renderLaSoTuVi(chartData);
+                            // NOTE: Nếu có params trong URL (user vừa click "Cập nhật lá số"),
+                            // thì tính lại lá số từ API với params mới
+                            const hasOtherParams = urlParams.get('hoten') || urlParams.get('namxem') ||
+                                                   urlParams.get('ngaysinh') || urlParams.get('giosinh');
+                            if (hasOtherParams) {
+                                // User vừa update thông tin, tính lại từ API
+                                const params = new URLSearchParams(window.location.search);
+                                // Xóa laso_id để API tính toán lại
+                                params.delete('laso_id');
+                                const apiUrl = '/api?' + params.toString();
+
+                                fetch(apiUrl)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        renderLaSoTuVi(data);
+                                    })
+                                    .catch(error => {
+                                        console.error('Error recalculating laso:', error);
+                                        alert('Có lỗi xảy ra khi tính lại lá số!');
+                                    });
+                            } else {
+                                // Load lần đầu, dùng chart_data từ database
+                                const chartData = laso.chart_data;
+                                renderLaSoTuVi(chartData);
+                            }
                         } else {
                             alert('Không thể tải lá số!');
                         }
@@ -287,26 +337,126 @@
             }
         });
 
-        // Xử lý modal lưu lá số
-        const modal = document.getElementById('save-modal');
+        // Xử lý nút Lưu đơn giản
         const btnSave = document.getElementById('btn-save-laso');
+        const modal = document.getElementById('save-modal');
         const btnClose = document.querySelector('.modal-close');
         const btnCancel = document.querySelector('.btn-modal-cancel');
         const folderSelect = document.getElementById('folder-select');
         const newFolderGroup = document.getElementById('new-folder-group');
 
-        // Mở modal khi click nút Lưu
-        btnSave.addEventListener('click', function() {
+        if (btnSave) {
+            btnSave.addEventListener('click', function() {
+                console.log('='.repeat(80));
+                console.log('Save button clicked!');
+                console.log('currentLaso:', currentLaso);
+                console.log('currentLasoId:', currentLasoId);
+                console.log('currentLaso.id:', currentLaso?.id);
+                console.log('Has currentLaso.id?', !!(currentLaso && currentLaso.id));
+                console.log('='.repeat(80));
+
+                // Kiểm tra xem có đang xem lá số đã lưu không
+                if (currentLaso && currentLaso.id) {
+                    // Hiển thị hộp thoại chọn: Lưu đè hoặc Lưu mới
+                    const overwrite = confirm('Bạn muốn lưu đè lá số "' + currentLaso.name + '" hiện tại?\n\nChọn OK để lưu đè, Cancel để lưu thành lá số mới.');
+
+                    if (overwrite) {
+                        // Lưu đè lá số hiện tại
+                        handleUpdateLaso();
+                    } else {
+                        // Mở modal để lưu mới
+                        openSaveModal();
+                    }
+                } else {
+                    // Lá số chưa lưu, mở modal lưu mới
+                    openSaveModal();
+                }
+            });
+        }
+
+        // Hàm mở modal lưu mới
+        function openSaveModal() {
+            // Load folders
+            fetch('/api/folders/')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('folder-select');
+                    // Xóa các option cũ (trừ 2 option đầu)
+                    while (select.options.length > 2) {
+                        select.remove(2);
+                    }
+                    // Thêm folders từ database
+                    data.folders.forEach(folder => {
+                        const option = document.createElement('option');
+                        option.value = folder.id;
+                        option.textContent = folder.name + ' (' + folder.laso_count + ' lá số)';
+                        select.appendChild(option);
+                    });
+                });
             modal.style.display = 'block';
-        });
+        }
+
+        // Hàm xử lý cập nhật lá số
+        function handleUpdateLaso() {
+            console.log('handleUpdateLaso called');
+            const hotenInput = document.querySelector('input[name="hoten"]');
+            const ngaysinhSelect = document.querySelector('select[name="ngaysinh"]');
+            const thangsinhSelect = document.querySelector('select[name="thangsinh"]');
+            const namsinhInput = document.querySelector('input[name="namsinh"]');
+            const giosinhSelect = document.querySelector('select[name="giosinh"]');
+            const gioitinhSelect = document.querySelector('select[name="gioitinh"]');
+            const amlichCheckbox = document.querySelector('input[name="amlich"]');
+            const muigioSelect = document.querySelector('select[name="muigio"]');
+            const namxemInput = document.querySelector('input[name="namxem"]');
+
+            const updateData = {
+                laso_id: currentLaso.id,
+                hoten: hotenInput?.value || '',
+                ngaysinh: ngaysinhSelect?.value || '1',
+                thangsinh: thangsinhSelect?.value || '1',
+                namsinh: namsinhInput?.value || '2000',
+                giosinh: giosinhSelect?.value || '1',
+                gioitinh: gioitinhSelect?.value || 'nam',
+                amlich: amlichCheckbox?.checked ? 'on' : 'off',
+                muigio: muigioSelect?.value || '7',
+                namxem: namxemInput?.value || null
+            };
+
+            // Gửi request cập nhật
+            fetch('/api/update-laso/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Đã cập nhật lá số "' + currentLaso.name + '" thành công!');
+                    // Reload trang với laso_id để load lại dữ liệu
+                    window.location.href = `/result/?laso_id=${currentLaso.id}`;
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi cập nhật lá số!');
+            });
+        }
 
         // Đóng modal
-        btnClose.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-        btnCancel.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
+        if (btnClose) {
+            btnClose.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        }
+        if (btnCancel) {
+            btnCancel.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        }
 
         // Click bên ngoài modal để đóng
         window.addEventListener('click', function(event) {
@@ -324,28 +474,7 @@
             }
         });
 
-        // Load danh sách thư mục khi mở modal
-        btnSave.addEventListener('click', function() {
-            // Load folders từ API
-            fetch('/api/folders/')
-                .then(response => response.json())
-                .then(data => {
-                    const select = document.getElementById('folder-select');
-                    // Xóa các option cũ (trừ 2 option đầu)
-                    while (select.options.length > 2) {
-                        select.remove(2);
-                    }
-                    // Thêm folders từ database
-                    data.folders.forEach(folder => {
-                        const option = document.createElement('option');
-                        option.value = folder.id;
-                        option.textContent = folder.name + ' (' + folder.laso_count + ' lá số)';
-                        select.appendChild(option);
-                    });
-                });
-        });
-
-        // Xử lý lưu lá số
+        // Xử lý lưu lá số mới từ modal
         document.querySelector('.btn-modal-save').addEventListener('click', function() {
             const lasoName = document.getElementById('laso-name').value;
             const folderValue = document.getElementById('folder-select').value;
@@ -370,6 +499,7 @@
             const gioitinhSelect = document.querySelector('select[name="gioitinh"]');
             const amlichCheckbox = document.querySelector('input[name="amlich"]');
             const muigioSelect = document.querySelector('select[name="muigio"]');
+            const namxemInput = document.querySelector('input[name="namxem"]');
 
             console.log('DEBUG - Form values:', {
                 hoten: hotenInput?.value,
@@ -379,7 +509,8 @@
                 giosinh: giosinhSelect?.value,
                 gioitinh: gioitinhSelect?.value,
                 amlich: amlichCheckbox?.checked,
-                muigio: muigioSelect?.value
+                muigio: muigioSelect?.value,
+                namxem: namxemInput?.value
             });
 
             const saveData = {
@@ -391,7 +522,8 @@
                 giosinh: giosinhSelect?.value || '1',
                 gioitinh: gioitinhSelect?.value || 'nam',
                 amlich: amlichCheckbox?.checked ? 'on' : 'off',
-                muigio: muigioSelect?.value || '7'
+                muigio: muigioSelect?.value || '7',
+                namxem: namxemInput?.value || null
             };
 
             // Thêm folder info
@@ -415,9 +547,23 @@
                     alert(data.message);
                     modal.style.display = 'none';
 
-                    // Lưu laso_id vào biến global
+                    // Lưu laso_id và thông tin laso vào biến global
                     if (data.laso_id) {
                         currentLasoId = data.laso_id;
+                        // Lưu thông tin laso vào currentLaso
+                        currentLaso = {
+                            id: data.laso_id,
+                            name: lasoName,
+                            hoten: saveData.hoten,
+                            ngaysinh: saveData.ngaysinh,
+                            thangsinh: saveData.thangsinh,
+                            namsinh: saveData.namsinh,
+                            giosinh: saveData.giosinh,
+                            gioitinh: saveData.gioitinh,
+                            amlich: saveData.amlich === 'on',
+                            muigio: saveData.muigio,
+                            namxem: saveData.namxem
+                        };
                         // Cập nhật URL với laso_id
                         const newUrl = new URL(window.location);
                         newUrl.searchParams.set('laso_id', data.laso_id);
@@ -543,6 +689,6 @@
             });
         }
     </script>
-    <script src="{% static 'tuvi/client.js' %}"></script>
+    <script src="{% static 'tuvi/client.js' %}?v=999"></script>
 </body>
 </html>

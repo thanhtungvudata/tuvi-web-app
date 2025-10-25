@@ -22,13 +22,22 @@ def api(request):
     gioSinh = int(request.GET.get('giosinh', 1))
     timeZone = int(request.GET.get('muigio', 7))
     duongLich = False if request.GET.get('amlich') == 'on' else True
+    namXem = int(request.GET.get('namxem', now.year))
+
+    print("="*80)
+    print(f"DEBUG API - namxem from request: {request.GET.get('namxem')}")
+    print(f"DEBUG API - namXem parsed: {namXem}")
+    print(f"DEBUG API - now.year: {now.year}")
+    print("="*80)
+
     db = lapDiaBan(diaBan, ngaySinh, thangSinh, namSinh, gioSinh,
                    gioiTinh, duongLich, timeZone)
     thienBan = lapThienBan(ngaySinh, thangSinh, namSinh,
                            gioSinh, gioiTinh, hoTen, db)
     laso = {
         'thienBan': thienBan,
-        'thapNhiCung': db.thapNhiCung
+        'thapNhiCung': db.thapNhiCung,
+        'namXem': namXem
     }
     my_return = (json.dumps(laso, default=lambda o: o.__dict__))
     return HttpResponse(my_return, content_type="application/json")
@@ -37,6 +46,7 @@ def api(request):
 def lasotuvi_new_index(request):
     """Trang chủ - Form nhập liệu"""
     # Lấy thông tin từ URL nếu có (khi quay lại từ trang kết quả để sửa)
+    now = datetime.datetime.now()
     context = {
         'hoten': request.GET.get('hoten', ''),
         'ngaysinh': request.GET.get('ngaysinh', ''),
@@ -46,23 +56,58 @@ def lasotuvi_new_index(request):
         'giosinh': request.GET.get('giosinh', ''),
         'muigio': request.GET.get('muigio', '7'),
         'amlich': request.GET.get('amlich', 'off'),
+        'namxem': request.GET.get('namxem', str(now.year)),
     }
     return render(request, 'tuvi/index.html', context)
 
 
 def lasotuvi_new_result(request):
     """Trang kết quả - Hiển thị lá số"""
-    # Lấy thông tin từ GET parameters
-    context = {
-        'hoten': request.GET.get('hoten', ''),
-        'ngaysinh': request.GET.get('ngaysinh', '1'),
-        'thangsinh': request.GET.get('thangsinh', '1'),
-        'namsinh': request.GET.get('namsinh', '2000'),
-        'gioitinh': request.GET.get('gioitinh', 'nam'),
-        'giosinh': request.GET.get('giosinh', '1'),
-        'muigio': request.GET.get('muigio', '7'),
-        'amlich': request.GET.get('amlich', 'off'),
-    }
+    # NOTE: Check if loading from saved laso
+    laso_id = request.GET.get('laso_id')
+    now = datetime.datetime.now()
+
+    if laso_id:
+        # Load from saved laso
+        try:
+            laso = SavedLaSo.objects.get(id=laso_id)
+            context = {
+                'hoten': laso.hoten,
+                'ngaysinh': str(laso.ngaysinh),
+                'thangsinh': str(laso.thangsinh),
+                'namsinh': str(laso.namsinh),
+                'gioitinh': laso.gioitinh,
+                'giosinh': str(laso.giosinh),
+                'muigio': str(laso.muigio),
+                'amlich': 'on' if laso.amlich else 'off',
+                'namxem': str(laso.namxem) if laso.namxem else str(now.year),
+            }
+        except SavedLaSo.DoesNotExist:
+            # If laso not found, use default values
+            context = {
+                'hoten': '',
+                'ngaysinh': '1',
+                'thangsinh': '1',
+                'namsinh': '2000',
+                'gioitinh': 'nam',
+                'giosinh': '1',
+                'muigio': '7',
+                'amlich': 'off',
+                'namxem': str(now.year),
+            }
+    else:
+        # Load from GET parameters
+        context = {
+            'hoten': request.GET.get('hoten', ''),
+            'ngaysinh': request.GET.get('ngaysinh', '1'),
+            'thangsinh': request.GET.get('thangsinh', '1'),
+            'namsinh': request.GET.get('namsinh', '2000'),
+            'gioitinh': request.GET.get('gioitinh', 'nam'),
+            'giosinh': request.GET.get('giosinh', '1'),
+            'muigio': request.GET.get('muigio', '7'),
+            'amlich': request.GET.get('amlich', 'off'),
+            'namxem': request.GET.get('namxem', str(now.year)),
+        }
     return render(request, 'tuvi/result.html', context)
 
 
@@ -89,6 +134,7 @@ def save_laso(request):
         gioitinh = data.get('gioitinh')
         amlich = data.get('amlich') == 'on'
         muigio = int(data.get('muigio')) if data.get('muigio') else 7
+        namxem = int(data.get('namxem')) if data.get('namxem') else None
         folder_id = data.get('folder_id')
         new_folder_name = data.get('new_folder_name')
 
@@ -114,7 +160,8 @@ def save_laso(request):
         # Tạo chart_data JSON
         chart_data = {
             'thienBan': thienBan.__dict__,
-            'thapNhiCung': [cung.__dict__ for cung in db.thapNhiCung]
+            'thapNhiCung': [cung.__dict__ for cung in db.thapNhiCung],
+            'namXem': namxem
         }
 
         # Lưu vào database
@@ -128,6 +175,7 @@ def save_laso(request):
             gioitinh=gioitinh,
             amlich=amlich,
             muigio=muigio,
+            namxem=namxem,
             folder=folder,
             chart_data=chart_data
         )
@@ -218,6 +266,76 @@ def get_folders(request):
     } for folder in folders]
 
     return JsonResponse({'folders': data})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def update_laso(request):
+    """API để cập nhật lá số"""
+    try:
+        data = json.loads(request.body)
+        print("="*80)
+        print(f"DEBUG update_laso - Received data: {data}")
+        print(f"DEBUG update_laso - namxem value: {data.get('namxem')}")
+        print(f"DEBUG update_laso - namxem type: {type(data.get('namxem'))}")
+        print("="*80)
+        laso_id = data.get('laso_id')
+
+        if not laso_id:
+            print("DEBUG update_laso - Missing laso_id")
+            return JsonResponse({
+                'success': False,
+                'message': 'Thiếu laso_id'
+            }, status=400)
+
+        laso = SavedLaSo.objects.get(id=laso_id)
+
+        # Cập nhật thông tin lá số
+        laso.hoten = data.get('hoten', '')
+        laso.ngaysinh = int(data.get('ngaysinh', 1))
+        laso.thangsinh = int(data.get('thangsinh', 1))
+        laso.namsinh = int(data.get('namsinh', 2000))
+        laso.giosinh = int(data.get('giosinh', 1))
+        laso.gioitinh = data.get('gioitinh', 'nam')
+        laso.amlich = data.get('amlich', 'off') == 'on'
+        laso.muigio = int(data.get('muigio', 7))
+        laso.namxem = int(data.get('namxem')) if data.get('namxem') else None
+
+        # Tính toán lại chart_data với thông tin mới
+        duongLich = not laso.amlich
+        db = lapDiaBan(diaBan, laso.ngaysinh, laso.thangsinh, laso.namsinh, laso.giosinh,
+                       1 if laso.gioitinh == 'nam' else -1, duongLich, laso.muigio)
+        thienBan = lapThienBan(laso.ngaysinh, laso.thangsinh, laso.namsinh,
+                               laso.giosinh, 1 if laso.gioitinh == 'nam' else -1, laso.hoten, db)
+
+        # Tạo chart_data JSON
+        laso.chart_data = {
+            'thienBan': thienBan.__dict__,
+            'thapNhiCung': [cung.__dict__ for cung in db.thapNhiCung],
+            'namXem': laso.namxem
+        }
+
+        laso.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Đã cập nhật lá số thành công!'
+        })
+
+    except SavedLaSo.DoesNotExist:
+        print("DEBUG update_laso - Laso not found")
+        return JsonResponse({
+            'success': False,
+            'message': 'Không tìm thấy lá số'
+        }, status=404)
+    except Exception as e:
+        print(f"DEBUG update_laso - Exception: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Lỗi: {str(e)}'
+        }, status=400)
 
 
 @csrf_exempt

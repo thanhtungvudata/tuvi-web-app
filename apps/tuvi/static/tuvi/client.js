@@ -26,7 +26,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('lstv-form');
     const resultContainer = document.getElementById('lasotuvi-result');
 
-    form.addEventListener('submit', function(e) {
+    // NOTE: Only attach form listener if form exists (on homepage)
+    if (form) {
+        form.addEventListener('submit', function(e) {
         e.preventDefault();
 
         const formData = new FormData(form);
@@ -57,39 +59,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error:', error);
                 alert('Có lỗi xảy ra khi lập lá số. Vui lòng thử lại!');
             });
-    });
+        });
+    }
 });
 
 function renderLaSoTuVi(data) {
     const thienBan = data.thienBan;
     const thapNhiCung = data.thapNhiCung;
+    const namXem = data.namXem;
 
     // Lưu lại data để có thể re-render khi toggle checkbox
     window.currentLaSoData = data;
 
-    renderThienBan(thienBan);
+    renderThienBan(thienBan, thapNhiCung, namXem);
     renderThapNhiCung(thapNhiCung, thienBan);
 
     // Attach event listener cho checkbox (chỉ attach 1 lần)
     attachDisplayOptionsListener();
 }
 
-function renderThienBan(thienBan) {
+// NOTE: Helper function to get time range from Địa Chi name
+function getGioTimeRange(chiName) {
+    const gioMapping = {
+        'Tý': '23h-1h',
+        'Sửu': '1h-3h',
+        'Dần': '3h-5h',
+        'Mão': '5h-7h',
+        'Thìn': '7h-9h',
+        'Tỵ': '9h-11h',
+        'Ngọ': '11h-13h',
+        'Mùi': '13h-15h',
+        'Thân': '15h-17h',
+        'Dậu': '17h-19h',
+        'Tuất': '19h-21h',
+        'Hợi': '21h-23h'
+    };
+    return gioMapping[chiName] || '';
+}
+
+function renderThienBan(thienBan, thapNhiCung, namXem) {
     const thienBanContent = document.querySelector('.thien-ban-content');
+
+    // NOTE: Find which palace has cungThan = True to get the palace name for "Thân cư"
+    const cungThanCu = thapNhiCung.find(cung => cung.cungThan === true);
+    const thanCuValue = cungThanCu ? cungThanCu.cungChu : '(Không xác định)';
+
+    // NOTE: Extract Địa Chi from gioSinh (e.g., "Mậu Dần" -> "Dần")
+    const chiGio = thienBan.chiGioSinh.tenChi;
+    const timeRange = getGioTimeRange(chiGio);
+    const gioSinhDisplay = timeRange ? `${timeRange} - ${thienBan.gioSinh}` : thienBan.gioSinh;
 
     const html = `
         <p><strong>Họ tên:</strong> <span class="value">${thienBan.ten}</span></p>
         <p><strong>Năm sinh:</strong> <span class="value">${thienBan.namDuong} - ${thienBan.canNamTen} ${thienBan.chiNamTen}</span></p>
-        <p><strong>Tháng:</strong> <span class="value">${thienBan.canThangTen} ${thienBan.chiThangTen}</span></p>
-        <p><strong>Ngày:</strong> <span class="value">${thienBan.canNgayTen} ${thienBan.chiNgayTen}</span></p>
-        <p><strong>Giờ sinh:</strong> <span class="value">${thienBan.gioSinh}</span></p>
-        <p><strong>Năm xem:</strong> <span class="value">(Sẽ cập nhật sau)</span></p>
+        <p><strong>Tháng:</strong> <span class="value">${thienBan.thangDuong} (${thienBan.thangAm}) - ${thienBan.canThangTen} ${thienBan.chiThangTen}</span></p>
+        <p><strong>Ngày:</strong> <span class="value">${thienBan.ngayDuong} (${thienBan.ngayAm}) - ${thienBan.canNgayTen} ${thienBan.chiNgayTen}</span></p>
+        <p><strong>Giờ sinh:</strong> <span class="value">${gioSinhDisplay}</span></p>
+        <p><strong>Năm xem:</strong> <span class="value">${namXem || '(Chưa chọn)'}</span></p>
         <p><strong>Âm dương:</strong> <span class="value">${thienBan.amDuongNamSinh} ${thienBan.namNu}</span></p>
         <p><strong>Mệnh:</strong> <span class="value">${thienBan.banMenh}</span></p>
         <p><strong>Cục:</strong> <span class="value">${thienBan.tenCuc}</span></p>
         <p><strong>Chủ mệnh:</strong> <span class="value">${thienBan.menhChu}</span></p>
         <p><strong>Chủ thân:</strong> <span class="value">${thienBan.thanChu}</span></p>
-        <p><strong>Thân cư:</strong> <span class="value">(Sẽ cập nhật sau)</span></p>
+        <p><strong>Thân cư:</strong> <span class="value">${thanCuValue}</span></p>
     `;
 
     thienBanContent.innerHTML = html;
@@ -120,7 +152,8 @@ function renderThapNhiCung(thapNhiCung, thienBan) {
         if (cung.cungChu) {
             let cungChuLabel = cung.cungChu.toUpperCase();
             if (cung.cungThan) {
-                cungChuLabel += ' <THÂN>';
+                console.log(`DEBUG: Cung ${cung.cungChu} có cungThan = true`);
+                cungChuLabel += ' [THÂN]';
             }
             html += `<div class="cung-ten-chu">${cungChuLabel}</div>`;
         } else {
@@ -172,16 +205,24 @@ function renderThapNhiCung(thapNhiCung, thienBan) {
                 sao.saoID !== 27
             );
 
-            // Hiển thị chính tinh ở trên cùng và giữa cung
+            // NOTE: Hiển thị chính tinh ở trên cùng và giữa cung - LUÔN dành 2 dòng cho chính tinh
+            html += '<div class="cung-chinh-tinh">';
             if (chinhTinh.length > 0) {
-                html += '<div class="cung-chinh-tinh">';
                 chinhTinh.forEach(sao => {
                     const hanhClass = getHanhClass(sao.saoNguHanh);
                     const dacTinh = sao.saoDacTinh ? ` (${sao.saoDacTinh})` : '';
                     html += `<div class="sao-item sao-chinh ${hanhClass}">${sao.saoTen}${dacTinh}</div>`;
                 });
-                html += '</div>';
+                // NOTE: Nếu chỉ có 1 chính tinh, thêm 1 dòng placeholder để đủ 2 dòng
+                if (chinhTinh.length === 1) {
+                    html += '<div class="sao-item sao-chinh" style="visibility: hidden;">.</div>';
+                }
+            } else {
+                // NOTE: Không có chính tinh thì để trống 2 dòng
+                html += '<div class="sao-item sao-chinh" style="visibility: hidden;">.</div>';
+                html += '<div class="sao-item sao-chinh" style="visibility: hidden;">.</div>';
             }
+            html += '</div>';
 
             // Hiển thị sao tốt (trái) và sao xấu (phải) trong layout 2 cột
             if (saoTot.length > 0 || saoXau.length > 0) {
@@ -238,6 +279,7 @@ function renderThapNhiCung(thapNhiCung, thienBan) {
                 // Cột phải - Thứ tự: 6 hung tinh → Tứ Hóa → Phụ tinh khác
                 html += '<div class="sao-xau-column">';
                 const hungTinhIDs = [52, 51, 53, 54, 55, 56];
+                const thienHinhID = 73;
 
                 // 1. Hiển thị 6 hung tinh (in đậm)
                 saoXau.filter(sao => hungTinhIDs.includes(sao.saoID)).forEach(sao => {
@@ -246,15 +288,22 @@ function renderThapNhiCung(thapNhiCung, thienBan) {
                     html += `<div class="sao-item sao-quan-trong ${hanhClass}">${sao.saoTen}${dacTinh}</div>`;
                 });
 
-                // 2. Hiển thị Tứ Hóa (in đậm)
+                // 2. Hiển thị Thiên Hình (in đậm)
+                saoXau.filter(sao => sao.saoID === thienHinhID).forEach(sao => {
+                    const hanhClass = getHanhClass(sao.saoNguHanh);
+                    const dacTinh = sao.saoDacTinh ? ` (${sao.saoDacTinh})` : '';
+                    html += `<div class="sao-item sao-quan-trong ${hanhClass}">${sao.saoTen}${dacTinh}</div>`;
+                });
+
+                // 3. Hiển thị Tứ Hóa (in đậm)
                 saoXau.filter(sao => tuHoaIDs.includes(sao.saoID)).forEach(sao => {
                     const hanhClass = getHanhClass(sao.saoNguHanh);
                     const dacTinh = sao.saoDacTinh ? ` (${sao.saoDacTinh})` : '';
                     html += `<div class="sao-item sao-quan-trong ${hanhClass}">${sao.saoTen}${dacTinh}</div>`;
                 });
 
-                // 3. Hiển thị các phụ tinh còn lại
-                saoXau.filter(sao => !hungTinhIDs.includes(sao.saoID) && !tuHoaIDs.includes(sao.saoID)).forEach(sao => {
+                // 4. Hiển thị các phụ tinh còn lại
+                saoXau.filter(sao => !hungTinhIDs.includes(sao.saoID) && !tuHoaIDs.includes(sao.saoID) && sao.saoID !== thienHinhID).forEach(sao => {
                     const hanhClass = getHanhClass(sao.saoNguHanh);
                     const dacTinh = sao.saoDacTinh ? ` (${sao.saoDacTinh})` : '';
                     html += `<div class="sao-item ${hanhClass}">${sao.saoTen}${dacTinh}</div>`;
@@ -330,8 +379,8 @@ function highlightRelatedCung(cungSo) {
     if (currentHighlightedCung === cungSo) {
         // Reset tất cả về trạng thái ban đầu
         document.querySelectorAll('.cung').forEach(el => {
-            el.style.background = '#fff';
-            el.style.border = '1px solid #ecf0f1';
+            el.style.background = '#fef9f3';
+            el.style.border = 'none';
         });
         currentHighlightedCung = null;
         return;
@@ -339,15 +388,15 @@ function highlightRelatedCung(cungSo) {
 
     // Reset tất cả về trạng thái ban đầu
     document.querySelectorAll('.cung').forEach(el => {
-        el.style.background = '#fff';
-        el.style.border = '1px solid #ecf0f1';
+        el.style.background = '#fef9f3';
+        el.style.border = 'none';
     });
 
     // Highlight cung được click (chính cung)
     const clickedCung = document.getElementById(`cung-${cungSo}`);
     if (clickedCung) {
         clickedCung.style.background = '#fff3cd';
-        clickedCung.style.border = '2px solid #ffc107';
+        clickedCung.style.border = 'none';
     }
 
     // Highlight cung đối diện
@@ -355,7 +404,7 @@ function highlightRelatedCung(cungSo) {
     const doiCungElement = document.getElementById(`cung-${doiCung === 0 ? 12 : doiCung}`);
     if (doiCungElement) {
         doiCungElement.style.background = '#f8d7da';
-        doiCungElement.style.border = '2px solid #f5c6cb';
+        doiCungElement.style.border = 'none';
     }
 
     // Highlight 2 cung tam hợp
@@ -365,7 +414,7 @@ function highlightRelatedCung(cungSo) {
         const el = document.getElementById(`cung-${tc === 0 ? 12 : tc}`);
         if (el) {
             el.style.background = '#d1ecf1';
-            el.style.border = '2px solid #bee5eb';
+            el.style.border = 'none';
         }
     });
 

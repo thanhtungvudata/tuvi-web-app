@@ -1,6 +1,6 @@
 from core.calculations.AmDuong import (dichCung, ngayThangNam, ngayThangNamCanChi, nguHanh,
                      nguHanhNapAm, thienCan, timCoThan, timCuc, timHoaLinh,
-                     timLuuTru, timPhaToai, timThienKhoi, timThienMa,
+                     timLuuTru, timPhaToai, timThienKhoi, timThienViet, timThienMa,
                      timThienQuanThienPhuc, timTrangSinh, timTriet, timTuVi,
                      diaChi)
 from core.calculations.Sao import (saoAnQuang, saoBachHo, saoBacSy, saoBatToa, saoBenh,
@@ -293,7 +293,7 @@ def lapDiaBan(diaBan, nn, tt, nnnn, gioSinh, gioiTinh, duongLich, timeZone):
     viTriThienKhoi = timThienKhoi(canNam)
     diaBan.nhapSao(viTriThienKhoi, saoThienKhoi)
 
-    viTriThienViet = dichCung(5, 5 - viTriThienKhoi)
+    viTriThienViet = timThienViet(canNam)
     diaBan.nhapSao(viTriThienViet, saoThienViet)
 
     viTriThienHu = dichCung(7, chiNam - 1)
