@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lá Số Tử Vi - Kết quả</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'tuvi/style.css' %}?v=5" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header với nút hành động -->
+        <div class="result-header">
+            <h1 class="main-title">Lá Số Tử Vi</h1>
+            <div class="action-buttons">
+                <a href="{% url 'lasotuvi_index' %}" class="btn btn-secondary">
+                    📁 Quản lý tất cả lá số
+                </a>
+                <a href="{% url 'lasotuvi_new' %}" class="btn btn-primary">
+                    + Tạo lá số mới
+                </a>
+            </div>
+        </div>
+
+        <!-- Kết quả lá số -->
+        <div id="lasotuvi-result" class="result-container">
+            <div class="laso-layout">
+                <!-- Sidebar bên trái -->
+                <div class="sidebar-left">
+                    <!-- Box 1: Sửa thông tin lá số -->
+                    <div class="edit-info-box">
+                        <h3>Thông tin lá số</h3>
+                        <form id="edit-form" method="GET" action="{% url 'lasotuvi_result' %}">
+                            <div class="edit-form-group">
+                                <label>Họ tên:</label>
+                                <input type="text" name="hoten" value="{{ hoten }}" placeholder="Nhập họ tên">
+                            </div>
+
+                            <div class="edit-form-group">
+                                <label>Giới tính:</label>
+                                <select name="gioitinh">
+                                    <option value="nam" {% if gioitinh == 'nam' %}selected{% endif %}>Nam</option>
+                                    <option value="nu" {% if gioitinh == 'nu' %}selected{% endif %}>Nữ</option>
+                                </select>
+                            </div>
+
+                            <div class="edit-form-group">
+                                <div class="date-inputs-with-labels">
+                                    <div class="date-field">
+                                        <label class="date-label">Ngày</label>
+                                        <select name="ngaysinh" class="date-select">
+                                            {% for i in "x"|rjust:"31" %}
+                                            <option value="{{ forloop.counter }}" {% if ngaysinh|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="date-field">
+                                        <label class="date-label">Tháng</label>
+                                        <select name="thangsinh" class="date-select">
+                                            {% for i in "x"|rjust:"12" %}
+                                            <option value="{{ forloop.counter }}" {% if thangsinh|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="date-field">
+                                        <label class="date-label">Năm</label>
+                                        <input type="text" name="namsinh" value="{{ namsinh }}" placeholder="Năm" class="year-input">
+                                    </div>
+                                </div>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="amlich" {% if amlich == 'on' %}checked{% endif %}> Âm lịch
+                                </label>
+                            </div>
+
+                            <div class="edit-form-group">
+                                <label>Giờ sinh:</label>
+                                <select name="giosinh">
+                                    <option value="1" {% if giosinh == '1' %}selected{% endif %}>Tý (23h-01h)</option>
+                                    <option value="2" {% if giosinh == '2' %}selected{% endif %}>Sửu (01h-03h)</option>
+                                    <option value="3" {% if giosinh == '3' %}selected{% endif %}>Dần (03h-05h)</option>
+                                    <option value="4" {% if giosinh == '4' %}selected{% endif %}>Mão (05h-07h)</option>
+                                    <option value="5" {% if giosinh == '5' %}selected{% endif %}>Thìn (07h-09h)</option>
+                                    <option value="6" {% if giosinh == '6' %}selected{% endif %}>Tỵ (09h-11h)</option>
+                                    <option value="7" {% if giosinh == '7' %}selected{% endif %}>Ngọ (11h-13h)</option>
+                                    <option value="8" {% if giosinh == '8' %}selected{% endif %}>Mùi (13h-15h)</option>
+                                    <option value="9" {% if giosinh == '9' %}selected{% endif %}>Thân (15h-17h)</option>
+                                    <option value="10" {% if giosinh == '10' %}selected{% endif %}>Dậu (17h-19h)</option>
+                                    <option value="11" {% if giosinh == '11' %}selected{% endif %}>Tuất (19h-21h)</option>
+                                    <option value="12" {% if giosinh == '12' %}selected{% endif %}>Hợi (21h-23h)</option>
+                                </select>
+                            </div>
+
+                            <div class="edit-form-group">
+                                <label>Múi giờ:</label>
+                                <select name="muigio">
+                                    <option value="7" {% if muigio == '7' or muigio == '' %}selected{% endif %}>+7 (Việt Nam)</option>
+                                    <option value="0">0</option>
+                                    <option value="1">+1</option>
+                                    <option value="2">+2</option>
+                                    <option value="3">+3</option>
+                                    <option value="4">+4</option>
+                                    <option value="5">+5</option>
+                                    <option value="6">+6</option>
+                                    <option value="8">+8</option>
+                                    <option value="9">+9</option>
+                                    <option value="10">+10</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn-edit-submit">Cập nhật lá số</button>
+                        </form>
+                    </div>
+
+                    <!-- Box 2: Quản lý lá số -->
+                    <div class="save-laso-box">
+                        <h3>Quản lý lá số</h3>
+                        <div class="manage-buttons">
+                            <button type="button" class="btn-manage-action" id="btn-save-laso" title="Lưu">
+                                💾
+                            </button>
+                            <button type="button" class="btn-manage-action" id="btn-favorite-laso" title="Yêu thích">
+                                ❤️
+                            </button>
+                            <button type="button" class="btn-manage-action" id="btn-move-laso" title="Di chuyển">
+                                📁
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Box 3: Tùy chọn hiển thị -->
+                    <div class="display-options">
+                        <h3>Tùy chọn hiển thị</h3>
+                        <label class="option-label">
+                            <input type="checkbox" id="hienphusao">
+                            <span>Hiển thị phụ tinh</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Wrapper căn giữa lá số -->
+                <div class="lasotuvi-grid-wrapper">
+                    <!-- Grid 4x4 cho 12 cung + thiên bàn -->
+                    <div class="lasotuvi-grid">
+                <!-- Hàng 1: Tỵ, Ngọ, Mùi, Thân -->
+                <div class="cung" data-cung="6" id="cung-6"></div>
+                <div class="cung" data-cung="7" id="cung-7"></div>
+                <div class="cung" data-cung="8" id="cung-8"></div>
+                <div class="cung" data-cung="9" id="cung-9"></div>
+
+                <!-- Hàng 2: Thìn, Thiên Bàn (colspan 2), Dậu -->
+                <div class="cung" data-cung="5" id="cung-5"></div>
+                <div class="thien-ban" id="thien-ban">
+                    <h2>TỬ VI TUỆ QUANG</h2>
+                    <div class="thien-ban-content"></div>
+                </div>
+                <div class="cung" data-cung="10" id="cung-10"></div>
+
+                <!-- Hàng 3: Mão, Thiên Bàn (tiếp), Tuất -->
+                <div class="cung" data-cung="4" id="cung-4"></div>
+                <!-- Thiên bàn chiếm 2 ô giữa, dùng grid-row: span 2 -->
+                <div class="cung" data-cung="11" id="cung-11"></div>
+
+                <!-- Hàng 4: Dần, Sửu, Tý, Hợi -->
+                <div class="cung" data-cung="3" id="cung-3"></div>
+                <div class="cung" data-cung="2" id="cung-2"></div>
+                <div class="cung" data-cung="1" id="cung-1"></div>
+                <div class="cung" data-cung="12" id="cung-12"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal chọn thư mục để lưu -->
+    <div id="save-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Lưu lá số vào thư mục</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Tên lá số:</label>
+                    <input type="text" id="laso-name" placeholder="Nhập tên lá số" />
+                </div>
+                <div class="form-group">
+                    <label>Chọn thư mục:</label>
+                    <select id="folder-select">
+                        <option value="">-- Không có thư mục --</option>
+                        <option value="new">+ Tạo thư mục mới</option>
+                    </select>
+                </div>
+                <div class="form-group" id="new-folder-group" style="display: none;">
+                    <label>Tên thư mục mới:</label>
+                    <input type="text" id="new-folder-name" placeholder="Nhập tên thư mục" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel">Hủy</button>
+                <button type="button" class="btn-modal-save">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal di chuyển lá số -->
+    <div id="move-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Di chuyển lá số</h3>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Chọn thư mục đích:</label>
+                    <select id="move-folder-select">
+                        <option value="">-- Chọn thư mục --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" id="btn-move-cancel">Hủy</button>
+                <button type="button" class="btn-modal-save" id="btn-move-confirm">Di chuyển</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Biến global để lưu laso_id
+        let currentLasoId = null;
+
+        // Tự động load data khi trang load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lấy laso_id từ URL nếu có
+            const urlParams = new URLSearchParams(window.location.search);
+            currentLasoId = urlParams.get('laso_id');
+
+            // Nếu có laso_id, load từ database trước
+            if (currentLasoId) {
+                fetch(`/api/laso/${currentLasoId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.laso.chart_data) {
+                            const laso = data.laso;
+
+                            // Điền thông tin vào form
+                            document.querySelector('input[name="hoten"]').value = laso.hoten || '';
+                            document.querySelector('select[name="ngaysinh"]').value = laso.ngaysinh || '';
+                            document.querySelector('select[name="thangsinh"]').value = laso.thangsinh || '';
+                            document.querySelector('input[name="namsinh"]').value = laso.namsinh || '';
+                            document.querySelector('select[name="giosinh"]').value = laso.giosinh || '';
+                            document.querySelector('select[name="gioitinh"]').value = laso.gioitinh || '';
+                            document.querySelector('input[name="amlich"]').checked = laso.amlich || false;
+                            document.querySelector('select[name="muigio"]').value = laso.muigio || 7;
+
+                            // Cập nhật trạng thái yêu thích cho nút
+                            const btnFavorite = document.getElementById('btn-favorite-laso');
+                            if (btnFavorite && laso.is_favorite) {
+                                btnFavorite.classList.add('favorited');
+                            }
+
+                            // Render lá số
+                            const chartData = laso.chart_data;
+                            renderLaSoTuVi(chartData);
+                        } else {
+                            alert('Không thể tải lá số!');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading saved laso:', error);
+                        alert('Có lỗi xảy ra khi tải lá số!');
+                    });
+            } else {
+                // Không có laso_id, tính toán lá số mới từ params
+                const params = new URLSearchParams(window.location.search);
+                const apiUrl = '/api?' + params.toString();
+
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        renderLaSoTuVi(data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra khi lập lá số. Vui lòng thử lại!');
+                    });
+            }
+        });
+
+        // Xử lý modal lưu lá số
+        const modal = document.getElementById('save-modal');
+        const btnSave = document.getElementById('btn-save-laso');
+        const btnClose = document.querySelector('.modal-close');
+        const btnCancel = document.querySelector('.btn-modal-cancel');
+        const folderSelect = document.getElementById('folder-select');
+        const newFolderGroup = document.getElementById('new-folder-group');
+
+        // Mở modal khi click nút Lưu
+        btnSave.addEventListener('click', function() {
+            modal.style.display = 'block';
+        });
+
+        // Đóng modal
+        btnClose.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+        btnCancel.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        // Click bên ngoài modal để đóng
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Hiện/ẩn input tên thư mục mới
+        folderSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                newFolderGroup.style.display = 'block';
+            } else {
+                newFolderGroup.style.display = 'none';
+            }
+        });
+
+        // Load danh sách thư mục khi mở modal
+        btnSave.addEventListener('click', function() {
+            // Load folders từ API
+            fetch('/api/folders/')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('folder-select');
+                    // Xóa các option cũ (trừ 2 option đầu)
+                    while (select.options.length > 2) {
+                        select.remove(2);
+                    }
+                    // Thêm folders từ database
+                    data.folders.forEach(folder => {
+                        const option = document.createElement('option');
+                        option.value = folder.id;
+                        option.textContent = folder.name + ' (' + folder.laso_count + ' lá số)';
+                        select.appendChild(option);
+                    });
+                });
+        });
+
+        // Xử lý lưu lá số
+        document.querySelector('.btn-modal-save').addEventListener('click', function() {
+            const lasoName = document.getElementById('laso-name').value;
+            const folderValue = document.getElementById('folder-select').value;
+            const newFolderName = document.getElementById('new-folder-name').value;
+
+            if (!lasoName) {
+                alert('Vui lòng nhập tên lá số!');
+                return;
+            }
+
+            if (folderValue === 'new' && !newFolderName) {
+                alert('Vui lòng nhập tên thư mục mới!');
+                return;
+            }
+
+            // Lấy thông tin từ form ở sidebar
+            const hotenInput = document.querySelector('input[name="hoten"]');
+            const ngaysinhSelect = document.querySelector('select[name="ngaysinh"]');
+            const thangsinhSelect = document.querySelector('select[name="thangsinh"]');
+            const namsinhInput = document.querySelector('input[name="namsinh"]');
+            const giosinhSelect = document.querySelector('select[name="giosinh"]');
+            const gioitinhSelect = document.querySelector('select[name="gioitinh"]');
+            const amlichCheckbox = document.querySelector('input[name="amlich"]');
+            const muigioSelect = document.querySelector('select[name="muigio"]');
+
+            console.log('DEBUG - Form values:', {
+                hoten: hotenInput?.value,
+                ngaysinh: ngaysinhSelect?.value,
+                thangsinh: thangsinhSelect?.value,
+                namsinh: namsinhInput?.value,
+                giosinh: giosinhSelect?.value,
+                gioitinh: gioitinhSelect?.value,
+                amlich: amlichCheckbox?.checked,
+                muigio: muigioSelect?.value
+            });
+
+            const saveData = {
+                name: lasoName,
+                hoten: hotenInput?.value || '',
+                ngaysinh: ngaysinhSelect?.value || '1',
+                thangsinh: thangsinhSelect?.value || '1',
+                namsinh: namsinhInput?.value || '2000',
+                giosinh: giosinhSelect?.value || '1',
+                gioitinh: gioitinhSelect?.value || 'nam',
+                amlich: amlichCheckbox?.checked ? 'on' : 'off',
+                muigio: muigioSelect?.value || '7'
+            };
+
+            // Thêm folder info
+            if (folderValue === 'new') {
+                saveData.new_folder_name = newFolderName;
+            } else if (folderValue) {
+                saveData.folder_id = folderValue;
+            }
+
+            // Gửi request lưu lá số
+            fetch('/api/save-laso/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(saveData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    modal.style.display = 'none';
+
+                    // Lưu laso_id vào biến global
+                    if (data.laso_id) {
+                        currentLasoId = data.laso_id;
+                        // Cập nhật URL với laso_id
+                        const newUrl = new URL(window.location);
+                        newUrl.searchParams.set('laso_id', data.laso_id);
+                        window.history.replaceState({}, '', newUrl);
+                    }
+
+                    // Reset form
+                    document.getElementById('laso-name').value = '';
+                    document.getElementById('folder-select').value = '';
+                    document.getElementById('new-folder-name').value = '';
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi lưu lá số!');
+            });
+        });
+        // Xử lý nút Yêu thích
+        const btnFavorite = document.getElementById('btn-favorite-laso');
+        if (btnFavorite) {
+            btnFavorite.addEventListener('click', function() {
+                if (!currentLasoId) {
+                    alert('Vui lòng lưu lá số trước khi đánh dấu yêu thích!');
+                    return;
+                }
+
+                const lasoId = currentLasoId;
+
+                fetch(`/api/laso/${lasoId}/toggle-favorite/`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // Cập nhật icon và class cho nút
+                        btnFavorite.innerHTML = '❤️';
+                        if (data.is_favorite) {
+                            btnFavorite.classList.add('favorited');
+                        } else {
+                            btnFavorite.classList.remove('favorited');
+                        }
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra!');
+                });
+            });
+        }
+
+        // Xử lý nút Di chuyển
+        const btnMove = document.getElementById('btn-move-laso');
+        const moveModal = document.getElementById('move-modal');
+        const btnMoveClose = document.querySelector('#move-modal .modal-close');
+        const btnMoveCancel = document.getElementById('btn-move-cancel');
+
+        if (btnMove && moveModal) {
+            btnMove.addEventListener('click', function() {
+                if (!currentLasoId) {
+                    alert('Vui lòng lưu lá số trước khi di chuyển!');
+                    return;
+                }
+
+                // Load danh sách thư mục
+                fetch('/api/folders/')
+                    .then(response => response.json())
+                    .then(data => {
+                        const select = document.getElementById('move-folder-select');
+                        select.innerHTML = '<option value="">-- Chọn thư mục --</option>';
+                        data.folders.forEach(folder => {
+                            const option = document.createElement('option');
+                            option.value = folder.id;
+                            option.textContent = folder.name;
+                            select.appendChild(option);
+                        });
+                        moveModal.style.display = 'block';
+                    });
+            });
+
+            btnMoveClose.addEventListener('click', function() {
+                moveModal.style.display = 'none';
+            });
+
+            btnMoveCancel.addEventListener('click', function() {
+                moveModal.style.display = 'none';
+            });
+
+            // Xử lý di chuyển
+            document.getElementById('btn-move-confirm').addEventListener('click', function() {
+                const lasoId = currentLasoId;
+                const folderId = document.getElementById('move-folder-select').value;
+
+                if (!folderId) {
+                    alert('Vui lòng chọn thư mục!');
+                    return;
+                }
+
+                fetch(`/api/laso/${lasoId}/move/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ folder_id: folderId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        moveModal.style.display = 'none';
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra!');
+                });
+            });
+        }
+    </script>
+    <script src="{% static 'tuvi/client.js' %}"></script>
+</body>
+</html>

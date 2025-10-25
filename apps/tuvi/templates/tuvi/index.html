@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lá Số Tử Vi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'tuvi/style.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header với nút hành động -->
+        <div class="result-header">
+            <h1 class="main-title">Lập lá số mới</h1>
+            <div class="action-buttons">
+                <a href="{% url 'lasotuvi_index' %}" class="btn btn-secondary">
+                    📁 Quản lý tất cả lá số
+                </a>
+            </div>
+        </div>
+
+        <!-- Form nhập liệu -->
+        <div class="create-form-wrapper">
+            <div class="edit-info-box">
+                <h3>Thông tin lá số</h3>
+                <form id="lstv-form" method="GET" action="{% url 'lasotuvi_result' %}">
+                <div class="edit-form-group">
+                    <label>Họ tên:</label>
+                    <input type="text" name="hoten" id="hoten" placeholder="Nhập họ tên" value="{{ hoten }}">
+                </div>
+
+                <div class="edit-form-group">
+                    <label>Giới tính:</label>
+                    <select name="gioitinh" id="gioitinh">
+                        <option value="nam" {% if gioitinh == 'nam' %}selected{% endif %}>Nam</option>
+                        <option value="nu" {% if gioitinh == 'nu' %}selected{% endif %}>Nữ</option>
+                    </select>
+                </div>
+
+                <div class="edit-form-group">
+                    <div class="date-inputs-with-labels">
+                        <div class="date-field">
+                            <label class="date-label">Ngày</label>
+                            <select name="ngaysinh" id="ngaysinh" class="date-select">
+                                {% for i in "x"|rjust:"31" %}
+                                <option value="{{ forloop.counter }}" {% if ngaysinh|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="date-field">
+                            <label class="date-label">Tháng</label>
+                            <select name="thangsinh" id="thangsinh" class="date-select">
+                                {% for i in "x"|rjust:"12" %}
+                                <option value="{{ forloop.counter }}" {% if thangsinh|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="date-field">
+                            <label class="date-label">Năm</label>
+                            <input type="text" name="namsinh" id="namsinh" value="{{ namsinh }}" placeholder="Năm" class="year-input">
+                        </div>
+                    </div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amlich" id="amlich" {% if amlich == 'on' %}checked{% endif %}> Âm lịch
+                    </label>
+                </div>
+
+                <div class="edit-form-group">
+                    <label>Giờ sinh:</label>
+                    <select name="giosinh" id="giosinh">
+                        <option value="1" {% if giosinh == '1' %}selected{% endif %}>Tý (23h-01h)</option>
+                        <option value="2" {% if giosinh == '2' %}selected{% endif %}>Sửu (01h-03h)</option>
+                        <option value="3" {% if giosinh == '3' %}selected{% endif %}>Dần (03h-05h)</option>
+                        <option value="4" {% if giosinh == '4' %}selected{% endif %}>Mão (05h-07h)</option>
+                        <option value="5" {% if giosinh == '5' %}selected{% endif %}>Thìn (07h-09h)</option>
+                        <option value="6" {% if giosinh == '6' %}selected{% endif %}>Tỵ (09h-11h)</option>
+                        <option value="7" {% if giosinh == '7' %}selected{% endif %}>Ngọ (11h-13h)</option>
+                        <option value="8" {% if giosinh == '8' %}selected{% endif %}>Mùi (13h-15h)</option>
+                        <option value="9" {% if giosinh == '9' %}selected{% endif %}>Thân (15h-17h)</option>
+                        <option value="10" {% if giosinh == '10' %}selected{% endif %}>Dậu (17h-19h)</option>
+                        <option value="11" {% if giosinh == '11' %}selected{% endif %}>Tuất (19h-21h)</option>
+                        <option value="12" {% if giosinh == '12' %}selected{% endif %}>Hợi (21h-23h)</option>
+                    </select>
+                </div>
+
+                <div class="edit-form-group">
+                    <label>Múi giờ:</label>
+                    <select name="muigio" id="muigio">
+                        <option value="7" {% if muigio == '7' or muigio == '' %}selected{% endif %}>+7 (Việt Nam)</option>
+                        <option value="0">0</option>
+                        <option value="1">+1</option>
+                        <option value="2">+2</option>
+                        <option value="3">+3</option>
+                        <option value="4">+4</option>
+                        <option value="5">+5</option>
+                        <option value="6">+6</option>
+                        <option value="8">+8</option>
+                        <option value="9">+9</option>
+                        <option value="10">+10</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">Lập lá số</button>
+            </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

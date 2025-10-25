@@ -1,0 +1,743 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    background-color: #f5f5f5;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.main-title {
+    text-align: center;
+    color: #d35400;
+    margin-bottom: 30px;
+    font-size: 28px;
+    text-transform: uppercase;
+}
+
+/* Form styles */
+.form-container {
+    background: #fef9f3;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+/* Wrapper cho trang lập lá số mới - giới hạn chiều rộng */
+.create-form-wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-right: 10px;
+    min-width: 180px;
+    color: #2c3e50;
+}
+
+.form-group input[type="text"],
+.form-group select {
+    padding: 8px 12px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group select {
+    margin-right: 5px;
+}
+
+.btn-submit {
+    background: #e67e22;
+    color: white;
+    padding: 12px 40px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: block;
+    margin: 20px auto 0;
+}
+
+.btn-submit:hover {
+    background: #d35400;
+}
+
+/* Result header với action buttons */
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+}
+
+.result-header .main-title {
+    margin: 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: #e67e22;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #d35400;
+}
+
+.btn-secondary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #2980b9;
+}
+
+/* Result container */
+.result-container {
+    margin-top: 30px;
+}
+
+/* Layout ngang: sidebar trái, lá số phải */
+.laso-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+/* Sidebar bên trái chứa các box */
+.sidebar-left {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-shrink: 0;
+    min-width: 200px;
+}
+
+/* Box sửa thông tin lá số */
+.edit-info-box {
+    background: #e8f5e9;
+    border-radius: 6px;
+    padding: 15px;
+}
+
+.edit-info-box h3 {
+    font-size: 14px;
+    color: #2c3e50;
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    text-align: center;
+}
+
+.edit-form-group {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Cho phần date có cấu trúc phức tạp, hiển thị dọc */
+.edit-form-group:has(.date-inputs-with-labels) {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.edit-form-group > label:not(.checkbox-label) {
+    font-size: 12px;
+    color: #2c3e50;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: fit-content;
+}
+
+.edit-form-group input[type="text"]:not(.year-input),
+.edit-form-group select:not(.date-select) {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #c8e6c9;
+    border-radius: 4px;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+.date-inputs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.date-inputs-with-labels {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+}
+
+.date-field {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.date-label {
+    font-size: 10px;
+    color: #7f8c8d;
+    margin-bottom: 3px;
+    font-weight: 500;
+}
+
+.date-select {
+    width: 100%;
+    padding: 6px 4px;
+    font-size: 12px;
+    border: 1px solid #c8e6c9;
+    border-radius: 4px;
+}
+
+.year-input {
+    width: 100%;
+    padding: 6px 4px;
+    font-size: 12px;
+    border: 1px solid #c8e6c9;
+    border-radius: 4px;
+}
+
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.btn-edit-submit {
+    width: 100%;
+    background: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 8px;
+}
+
+.btn-edit-submit:hover {
+    background: #45a049;
+}
+
+/* Box lưu lá số */
+.save-laso-box {
+    background: #e3f2fd;
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+}
+
+.save-laso-box h3 {
+    font-size: 14px;
+    color: #2c3e50;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+}
+
+.manage-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.btn-manage-action {
+    flex: 1;
+    background: white;
+    color: #1976D2;
+    padding: 10px;
+    border: 1px solid #bbdefb;
+    border-radius: 4px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-manage-action:hover {
+    background: #f5faff;
+    border-color: #90caf9;
+}
+
+.btn-manage-action:active {
+    transform: scale(0.98);
+}
+
+/* Favorite button state */
+.btn-manage-action.favorited {
+    color: #f39c12;
+    border-color: #f39c12;
+    background: #fef5e7;
+}
+
+.btn-manage-action.favorited:hover {
+    background: #fdebd0;
+    border-color: #e67e22;
+}
+
+.btn-manage-all {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    background: #4CAF50;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.btn-manage-all:hover {
+    background: #45a049;
+}
+
+/* Display options - tùy chọn hiển thị */
+.display-options {
+    background: #fff3cd;
+    border-radius: 6px;
+    padding: 15px 20px;
+}
+
+.display-options h3 {
+    font-size: 14px;
+    color: #2c3e50;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Wrapper cho lá số - căn giữa trong khoảng trống còn lại */
+.lasotuvi-grid-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.option-label {
+    font-size: 15px;
+    font-weight: bold;
+    color: #2c3e50;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.option-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.option-label span {
+    vertical-align: middle;
+}
+
+.option-hint {
+    font-size: 13px;
+    font-weight: normal;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.display-options:hover {
+    background: #ffeaa7;
+}
+
+/* Grid layout cho 12 cung + thiên bàn */
+.lasotuvi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 200px);
+    gap: 2px;
+    background: #2c3e50;
+    border: 2px solid #2c3e50;
+    width: 800px;
+    flex-shrink: 0;
+}
+
+/* Cung styles */
+.cung {
+    background: #fff;
+    padding: 10px;
+    height: 200px;
+    position: relative;
+    border: 1px solid #ecf0f1;
+    font-size: 12px;
+    font-weight: 700 !important;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.cung:hover {
+    background: #fef9f3;
+    cursor: pointer;
+}
+
+/* Thiên bàn ở giữa, chiếm 2 hàng x 2 cột */
+.thien-ban {
+    background: linear-gradient(135deg, #fef9f3 0%, #f9e8d3 100%);
+    padding: 15px;
+    grid-column: 2 / 4;
+    grid-row: 2 / 4;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 402px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.thien-ban h2 {
+    color: #d35400;
+    font-size: 16px;
+    margin-bottom: 10px;
+    text-align: center;
+    padding-bottom: 8px;
+    width: 100%;
+}
+
+.thien-ban-content {
+    text-align: left;
+    width: 100%;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.thien-ban-content p {
+    margin: 5px 0;
+}
+
+.thien-ban-content strong {
+    color: #2c3e50;
+    min-width: 120px;
+    display: inline-block;
+}
+
+.thien-ban-content .value {
+    color: #0066cc;
+    font-weight: bold;
+}
+
+/* Header của cung - chứa địa chi, tên cung, đại hạn */
+.cung-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0px;
+}
+
+/* Tên cung (địa chi) - góc trái trên */
+.cung-ten-chi {
+    font-size: 11px;
+    font-weight: bold;
+    color: #e67e22;
+    flex: 0 0 auto;
+}
+
+/* Tên cung chủ - giữa trên */
+.cung-ten-chu {
+    font-size: 11px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-transform: uppercase;
+    text-align: center;
+    flex: 1 1 auto;
+    line-height: 1.2;
+}
+
+/* Tuổi đại hạn - góc phải trên */
+.cung-dai-han {
+    font-size: 11px;
+    font-weight: bold;
+    color: #c0392b;
+    flex: 0 0 auto;
+}
+
+/* Chính tinh - hiển thị ở trên cùng và giữa cung */
+.cung-chinh-tinh {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+/* Sao Vòng Trường Sinh - luôn ở đáy cung, căn giữa */
+.cung-trang-sinh-wrapper {
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: bold;
+}
+
+.sao-trang-sinh {
+    display: inline;
+    white-space: nowrap;
+}
+
+/* Layout 2 cột cho phụ tinh: sao tốt (trái) và sao xấu (phải) */
+.cung-phu-tinh {
+    margin-top: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Cột trái - Sao tốt (saoLoai < 10) - sát rìa trái */
+.sao-tot-column {
+    flex: 0 1 50%;
+    line-height: 1.3;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Cột phải - Sao xấu (saoLoai > 10) - sát rìa phải */
+.sao-xau-column {
+    flex: 0 1 50%;
+    line-height: 1.3;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Các sao khác (không phải cát/hung) */
+.cung-sao-list {
+    margin-top: 5px;
+}
+
+.sao-item {
+    margin: 2px 0;
+    font-size: 11px;
+    line-height: 1.3;
+    text-transform: capitalize;
+    font-weight: 600;
+}
+
+/* Sao chính - in đậm, font lớn hơn, màu theo ngũ hành */
+.sao-item.sao-chinh {
+    font-weight: bold;
+    font-size: 12px;
+    margin: 3px 0;
+}
+
+/* Sao quan trọng (6 cát, 6 hung, Tứ Hóa, Lộc Tồn, Thiên Mã) - in đậm */
+.sao-item.sao-quan-trong {
+    font-weight: bold;
+}
+
+/* Màu sắc ngũ hành */
+.hanh-moc {
+    color: #4CAF50;
+}
+
+.hanh-hoa {
+    color: #e74c3c;
+}
+
+.hanh-tho {
+    color: #d68910;
+}
+
+.hanh-kim {
+    color: #757575;
+}
+
+.hanh-thuy {
+    color: #000100;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .lasotuvi-grid {
+        font-size: 12px;
+    }
+
+    .cung {
+        min-height: 150px;
+        padding: 10px;
+    }
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
+.modal-close {
+    font-size: 28px;
+    font-weight: bold;
+    color: #95a5a6;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #2c3e50;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-body label {
+    display: block;
+    font-size: 14px;
+    color: #2c3e50;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.modal-body input[type="text"],
+.modal-body select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #ecf0f1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-modal-cancel,
+.btn-modal-save {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-modal-cancel {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-modal-cancel:hover {
+    background: #7f8c8d;
+}
+
+.btn-modal-save {
+    background: #2196F3;
+    color: white;
+}
+
+.btn-modal-save:hover {
+    background: #1976D2;
+}
+
+@media (max-width: 768px) {
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-group label {
+        margin-bottom: 5px;
+    }
+
+    .modal-content {
+        width: 90%;
+        margin: 20% auto;
+    }
+}

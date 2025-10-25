@@ -1,0 +1,490 @@
+/* Reset font for manage page */
+body {
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* Tabs container */
+.tabs-container {
+    margin-top: 30px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Tabs navigation */
+.tabs-nav {
+    display: flex;
+    border-bottom: 2px solid #ecf0f1;
+    background: #f8f9fa;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px 20px;
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #7f8c8d;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.tab-btn:hover {
+    background: #e8f4f8;
+    color: #2980b9;
+}
+
+.tab-btn.active {
+    color: #2980b9;
+    background: white;
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #2980b9;
+}
+
+/* Tab content */
+.tab-content {
+    display: none;
+    padding: 30px;
+    min-height: 400px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* View mode selector */
+.view-mode-selector {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    gap: 5px;
+}
+
+.view-btn {
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #ecf0f1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #7f8c8d;
+}
+
+.view-btn:hover {
+    background: #f8f9fa;
+    border-color: #2980b9;
+    color: #2980b9;
+}
+
+.view-btn.active {
+    background: #2980b9;
+    border-color: #2980b9;
+    color: white;
+}
+
+.view-btn svg {
+    display: block;
+}
+
+/* Empty message */
+.empty-message {
+    text-align: center;
+    color: #95a5a6;
+    font-size: 16px;
+    padding: 60px 20px;
+}
+
+/* Lá số list - Grid view (default) */
+.laso-list.view-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* Lá số list - List view */
+.laso-list.view-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.laso-list.view-list .laso-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    align-items: center;
+    padding: 15px 20px;
+    gap: 20px;
+}
+
+.laso-list.view-list .laso-item h4 {
+    margin: 0;
+}
+
+.laso-list.view-list .laso-item .laso-info {
+    margin: 0;
+}
+
+.laso-list.view-list .laso-item .laso-date {
+    margin: 0;
+    text-align: right;
+}
+
+.laso-item {
+    background: #f8f9fa;
+    border: 1px solid #ecf0f1;
+    border-radius: 6px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 5px;
+    position: relative;
+}
+
+
+.laso-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: #2980b9;
+}
+
+.laso-content {
+    flex: 1;
+}
+
+.laso-item h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.laso-item .laso-info {
+    font-size: 13px;
+    color: #7f8c8d;
+    margin: 5px 0;
+}
+
+.laso-item .laso-date {
+    font-size: 12px;
+    color: #95a5a6;
+    margin-top: 10px;
+}
+
+/* Folder list - Grid view */
+.folder-list.view-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Folder list - List view */
+.folder-list.view-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.folder-list.view-list .folder-item {
+    display: grid;
+    grid-template-columns: 60px 2fr 1fr;
+    align-items: center;
+    padding: 15px 20px;
+    gap: 20px;
+    text-align: left;
+}
+
+.folder-list.view-list .folder-item h4 {
+    margin: 0;
+}
+
+.folder-list.view-list .folder-item .folder-count {
+    text-align: right;
+    margin: 0;
+}
+
+.folder-item {
+    background: #f8f9fa;
+    border: 1px solid #ecf0f1;
+    border-radius: 6px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 5px;
+    position: relative;
+}
+
+.folder-item .btn-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+.folder-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: #2980b9;
+}
+
+.folder-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.folder-item h4 {
+    margin: 10px 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.folder-item .folder-count {
+    font-size: 13px;
+    color: #7f8c8d;
+}
+
+.folder-icon {
+    font-size: 40px;
+}
+
+/* Action buttons container */
+.laso-actions {
+    display: flex;
+    gap: 5px;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+/* Favorite button */
+.btn-favorite {
+    background: #f8f9fa;
+    border: 1px solid #ecf0f1;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #95a5a6;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.btn-favorite:hover {
+    background: #e8f4f8;
+    border-color: #bdc3c7;
+}
+
+.btn-favorite.favorited {
+    color: #f39c12;
+    border-color: #f39c12;
+    background: #fef5e7;
+}
+
+.btn-favorite.favorited:hover {
+    background: #fdebd0;
+    border-color: #e67e22;
+}
+
+.btn-favorite:active {
+    transform: scale(0.95);
+}
+
+/* Move button */
+.btn-move {
+    background: #f8f9fa;
+    border: 1px solid #ecf0f1;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #7f8c8d;
+    flex-shrink: 0;
+    font-weight: 500;
+}
+
+.btn-move:hover {
+    color: #3498db;
+    border-color: #3498db;
+    background: #e8f4f8;
+}
+
+.btn-move:active {
+    transform: scale(0.95);
+}
+
+/* Delete button */
+.btn-delete {
+    background: #f8f9fa;
+    border: 1px solid #ecf0f1;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #7f8c8d;
+    flex-shrink: 0;
+    font-weight: 500;
+}
+
+.btn-delete:hover {
+    color: #e74c3c;
+    border-color: #e74c3c;
+    background: #ffebee;
+}
+
+.btn-delete:active {
+    transform: scale(0.95);
+}
+
+/* Adjust list view - keep simple since only showing name */
+.laso-list.view-list .laso-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.laso-list.view-list .laso-content {
+    flex: 1;
+}
+
+.folder-list.view-list .folder-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.folder-list.view-list .folder-content {
+    flex: 1;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    min-width: 400px;
+}
+
+.modal-content h3 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 20px;
+}
+
+.folder-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.folder-select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-confirm,
+.btn-cancel {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.btn-confirm {
+    background: #3498db;
+    color: white;
+}
+
+.btn-confirm:hover {
+    background: #2980b9;
+}
+
+.btn-cancel {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #7f8c8d;
+}
+
+.btn-confirm:active,
+.btn-cancel:active {
+    transform: scale(0.95);
+}
+
+/* Folder header */
+.folder-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.btn-back {
+    background: #ecf0f1;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.btn-back:hover {
+    background: #bdc3c7;
+}
+
+.btn-back:active {
+    transform: scale(0.95);
+}
+
+.folder-title {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 20px;
+}

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="vi">
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý lá số - Tử Vi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'tuvi/style.css' %}?v=5" rel="stylesheet">
+    <link href="{% static 'tuvi/manage.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="result-header">
+            <h1 class="main-title">Quản lý lá số</h1>
+            <div class="action-buttons">
+                <a href="{% url 'lasotuvi_new' %}" class="btn btn-primary">
+                    + Tạo lá số mới
+                </a>
+            </div>
+        </div>
+
+        <!-- Tabs navigation -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="all">Tất cả lá số</button>
+                    <button class="tab-btn" data-tab="folders">Thư mục</button>
+                    <button class="tab-btn" data-tab="favorites">Yêu thích</button>
+                </div>
+            </div>
+
+            <!-- Tab content: Tất cả lá số -->
+            <div class="tab-content active" id="tab-all">
+                <div class="laso-list view-list">
+                    <p class="empty-message">Chưa có lá số nào được lưu.</p>
+                </div>
+            </div>
+
+            <!-- Tab content: Thư mục -->
+            <div class="tab-content" id="tab-folders">
+                <div class="folder-list view-list">
+                    <p class="empty-message">Chưa có thư mục nào.</p>
+                </div>
+                <div class="folder-lasos" style="display: none;">
+                    <div class="folder-header">
+                        <button class="btn-back" onclick="backToFolders()">← Quay lại</button>
+                        <h3 class="folder-title"></h3>
+                    </div>
+                    <div class="laso-list view-list"></div>
+                </div>
+            </div>
+
+            <!-- Tab content: Yêu thích -->
+            <div class="tab-content" id="tab-favorites">
+                <div class="laso-list view-list">
+                    <p class="empty-message">Chưa có lá số yêu thích nào.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Xử lý chuyển tab
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons and contents
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                // Add active class to clicked button
+                this.classList.add('active');
+
+                // Show corresponding tab content
+                const tabId = 'tab-' + this.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Load danh sách thư mục
+        function loadFolders() {
+            fetch('/api/folders/')
+                .then(response => response.json())
+                .then(data => {
+                    const folderList = document.querySelector('#tab-folders .folder-list');
+
+                    if (data.folders.length === 0) {
+                        folderList.innerHTML = '<p class="empty-message">Chưa có thư mục nào.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.folders.forEach(folder => {
+                        html += `
+                            <div class="folder-item" data-folder-id="${folder.id}">
+                                <div class="folder-content">
+                                    <h4>📁 ${folder.name}</h4>
+                                </div>
+                                <button class="btn-delete" data-folder-id="${folder.id}">Xoá</button>
+                            </div>
+                        `;
+                    });
+                    folderList.innerHTML = html;
+
+                    // Add click event to folders
+                    document.querySelectorAll('.folder-item .folder-content').forEach(content => {
+                        content.addEventListener('click', function() {
+                            const folderId = this.parentElement.dataset.folderId;
+                            const folderName = this.querySelector('h4').textContent.replace('📁 ', '');
+                            showFolderLasos(folderId, folderName);
+                        });
+                    });
+
+                    // Add click event for delete buttons
+                    document.querySelectorAll('.folder-item .btn-delete').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const folderId = this.dataset.folderId;
+                            deleteFolder(folderId);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading folders:', error);
+                });
+        }
+
+        // Load danh sách lá số
+        function loadLasos(filter = 'all') {
+            const url = '/api/lasos/?filter=' + filter;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const lasoList = document.querySelector('#tab-all .laso-list');
+
+                    if (data.lasos.length === 0) {
+                        lasoList.innerHTML = '<p class="empty-message">Chưa có lá số nào.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.lasos.forEach(laso => {
+                        const favoriteIcon = laso.is_favorite ? '❤️' : '🤍';
+                        html += `
+                            <div class="laso-item" data-laso-id="${laso.id}">
+                                <div class="laso-content">
+                                    <h4>${laso.name}</h4>
+                                </div>
+                                <div class="laso-actions">
+                                    <button class="btn-favorite" data-laso-id="${laso.id}" data-is-favorite="${laso.is_favorite}">${favoriteIcon}</button>
+                                    <button class="btn-move" data-laso-id="${laso.id}">Di chuyển</button>
+                                    <button class="btn-delete" data-laso-id="${laso.id}">Xoá</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    lasoList.innerHTML = html;
+
+                    // Add click event to open laso
+                    document.querySelectorAll('.laso-item .laso-content').forEach(content => {
+                        content.addEventListener('click', function() {
+                            const lasoId = this.parentElement.dataset.lasoId;
+                            window.location.href = `/result/?laso_id=${lasoId}`;
+                        });
+                    });
+
+                    // Add click event for favorite buttons
+                    document.querySelectorAll('.laso-item .btn-favorite').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            toggleFavorite(lasoId);
+                        });
+                    });
+
+                    // Add click event for move buttons
+                    document.querySelectorAll('.laso-item .btn-move').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            showMoveDialog(lasoId);
+                        });
+                    });
+
+                    // Add click event for delete buttons
+                    document.querySelectorAll('.laso-item .btn-delete').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            deleteLaSo(lasoId);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading lasos:', error);
+                });
+        }
+
+        // Load danh sách lá số yêu thích
+        function loadFavorites() {
+            const url = '/api/lasos/?filter=favorites';
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const lasoList = document.querySelector('#tab-favorites .laso-list');
+
+                    if (data.lasos.length === 0) {
+                        lasoList.innerHTML = '<p class="empty-message">Chưa có lá số yêu thích nào.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.lasos.forEach(laso => {
+                        const favoriteIcon = laso.is_favorite ? '❤️' : '🤍';
+                        html += `
+                            <div class="laso-item" data-laso-id="${laso.id}">
+                                <div class="laso-content">
+                                    <h4>${laso.name}</h4>
+                                </div>
+                                <div class="laso-actions">
+                                    <button class="btn-favorite" data-laso-id="${laso.id}" data-is-favorite="${laso.is_favorite}">${favoriteIcon}</button>
+                                    <button class="btn-delete" data-laso-id="${laso.id}">Xoá</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    lasoList.innerHTML = html;
+
+                    // Add click event
+                    document.querySelectorAll('#tab-favorites .laso-item .laso-content').forEach(content => {
+                        content.addEventListener('click', function() {
+                            const lasoId = this.parentElement.dataset.lasoId;
+                            window.location.href = `/result/?laso_id=${lasoId}`;
+                        });
+                    });
+
+                    // Add click event for favorite buttons
+                    document.querySelectorAll('#tab-favorites .laso-item .btn-favorite').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            toggleFavorite(lasoId);
+                        });
+                    });
+
+                    // Add click event for delete buttons
+                    document.querySelectorAll('#tab-favorites .laso-item .btn-delete').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            deleteLaSo(lasoId);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading favorites:', error);
+                });
+        }
+
+        // Hàm toggle yêu thích
+        // Lưu folder hiện tại đang xem
+        let currentFolderId = null;
+        let currentFolderName = null;
+
+        function toggleFavorite(lasoId) {
+            fetch(`/api/laso/${lasoId}/toggle-favorite/`, {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload danh sách
+                    loadLasos('all');
+                    loadFavorites();
+
+                    // Nếu đang ở trong folder view, reload folder đó
+                    if (currentFolderId) {
+                        showFolderLasos(currentFolderId, currentFolderName);
+                    }
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling favorite:', error);
+                alert('Có lỗi xảy ra khi thay đổi trạng thái yêu thích');
+            });
+        }
+
+        // Hàm xoá lá số
+        function deleteLaSo(lasoId) {
+            if (!confirm('Bạn có chắc chắn muốn xoá lá số này?')) {
+                return;
+            }
+
+            fetch(`/api/laso/${lasoId}/delete/`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // Reload danh sách
+                    loadLasos('all');
+                    loadFavorites();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting laso:', error);
+                alert('Có lỗi xảy ra khi xoá lá số');
+            });
+        }
+
+        // Hàm xoá thư mục
+        function deleteFolder(folderId) {
+            if (!confirm('Bạn có chắc chắn muốn xoá thư mục này?\nLưu ý: Chỉ có thể xoá thư mục rỗng.')) {
+                return;
+            }
+
+            fetch(`/api/folder/${folderId}/delete/`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // Reload danh sách thư mục
+                    loadFolders();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting folder:', error);
+                alert('Có lỗi xảy ra khi xoá thư mục');
+            });
+        }
+
+        // Hàm quay lại danh sách thư mục
+        function backToFolders() {
+            // Reset folder hiện tại
+            currentFolderId = null;
+            currentFolderName = null;
+
+            document.querySelector('#tab-folders .folder-list').style.display = 'grid';
+            document.querySelector('#tab-folders .folder-lasos').style.display = 'none';
+        }
+
+        // Hàm hiển thị lá số của thư mục
+        function showFolderLasos(folderId, folderName) {
+            // Lưu folder hiện tại
+            currentFolderId = folderId;
+            currentFolderName = folderName;
+
+            // Ẩn danh sách thư mục, hiển thị danh sách lá số
+            document.querySelector('#tab-folders .folder-list').style.display = 'none';
+            document.querySelector('#tab-folders .folder-lasos').style.display = 'block';
+
+            // Set tên thư mục
+            document.querySelector('#tab-folders .folder-title').textContent = folderName;
+
+            // Load lá số của thư mục
+            fetch(`/api/lasos/?filter=folder_${folderId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const lasoList = document.querySelector('#tab-folders .folder-lasos .laso-list');
+
+                    if (data.lasos.length === 0) {
+                        lasoList.innerHTML = '<p class="empty-message">Thư mục này chưa có lá số nào.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.lasos.forEach(laso => {
+                        const favoriteIcon = laso.is_favorite ? '❤️' : '🤍';
+                        html += `
+                            <div class="laso-item" data-laso-id="${laso.id}">
+                                <div class="laso-content">
+                                    <h4>${laso.name}</h4>
+                                </div>
+                                <div class="laso-actions">
+                                    <button class="btn-favorite" data-laso-id="${laso.id}" data-is-favorite="${laso.is_favorite}">${favoriteIcon}</button>
+                                    <button class="btn-move" data-laso-id="${laso.id}">Di chuyển</button>
+                                    <button class="btn-delete" data-laso-id="${laso.id}">Xoá</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    lasoList.innerHTML = html;
+
+                    // Add event listeners
+                    document.querySelectorAll('#tab-folders .folder-lasos .laso-item .laso-content').forEach(content => {
+                        content.addEventListener('click', function() {
+                            const lasoId = this.parentElement.dataset.lasoId;
+                            window.location.href = `/result/?laso_id=${lasoId}`;
+                        });
+                    });
+
+                    document.querySelectorAll('#tab-folders .folder-lasos .btn-favorite').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            toggleFavorite(lasoId);
+                        });
+                    });
+
+                    document.querySelectorAll('#tab-folders .folder-lasos .btn-move').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            showMoveDialog(lasoId);
+                        });
+                    });
+
+                    document.querySelectorAll('#tab-folders .folder-lasos .btn-delete').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            deleteLaSo(lasoId);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading folder lasos:', error);
+                });
+        }
+
+        // Hàm hiển thị dialog di chuyển
+        function showMoveDialog(lasoId) {
+            // Lấy danh sách thư mục
+            fetch('/api/folders/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.folders.length === 0) {
+                        alert('Chưa có thư mục nào. Vui lòng tạo thư mục trước.');
+                        return;
+                    }
+
+                    // Tạo danh sách thư mục
+                    let folderOptions = '<option value="">-- Chọn thư mục --</option>';
+                    data.folders.forEach(folder => {
+                        folderOptions += `<option value="${folder.id}">${folder.name}</option>`;
+                    });
+
+                    // Hiển thị modal
+                    const modal = document.getElementById('move-modal');
+                    const select = document.getElementById('folder-select');
+                    select.innerHTML = folderOptions;
+                    modal.dataset.lasoId = lasoId;
+                    modal.style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error('Error loading folders:', error);
+                    alert('Có lỗi xảy ra khi tải danh sách thư mục');
+                });
+        }
+
+        // Hàm đóng dialog di chuyển
+        function closeMoveDialog() {
+            const modal = document.getElementById('move-modal');
+            modal.style.display = 'none';
+        }
+
+        // Hàm thực hiện di chuyển
+        function confirmMove() {
+            const modal = document.getElementById('move-modal');
+            const select = document.getElementById('folder-select');
+            const lasoId = modal.dataset.lasoId;
+            const folderId = select.value;
+
+            if (!folderId) {
+                alert('Vui lòng chọn thư mục');
+                return;
+            }
+
+            fetch(`/api/laso/${lasoId}/move/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ folder_id: folderId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    closeMoveDialog();
+                    loadLasos('all');
+                    loadFavorites();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error moving laso:', error);
+                alert('Có lỗi xảy ra khi di chuyển lá số');
+            });
+        }
+
+        // Load data khi trang load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLasos('all');
+            loadFolders();
+            loadFavorites();
+        });
+    </script>
+
+    <!-- Modal di chuyển lá số -->
+    <div id="move-modal" class="modal">
+        <div class="modal-content">
+            <h3>Di chuyển lá số</h3>
+            <select id="folder-select" class="folder-select">
+                <option value="">-- Chọn thư mục --</option>
+            </select>
+            <div class="modal-buttons">
+                <button onclick="confirmMove()" class="btn-confirm">Di chuyển</button>
+                <button onclick="closeMoveDialog()" class="btn-cancel">Hủy</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
