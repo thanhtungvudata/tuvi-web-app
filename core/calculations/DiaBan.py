@@ -3,7 +3,7 @@
 (c) 2016 doanguyen <dungnv2410@gmail.com>.
 """
 
-from core.calculations.AmDuong import diaChi, dichCung, khoangCachCung
+from core.calculations.AmDuong import diaChi, thienCan, dichCung, khoangCachCung
 
 
 class cungDiaBan(object):
@@ -17,6 +17,7 @@ class cungDiaBan(object):
         self.cungSao = []
         self.cungAmDuong = -1 if (self.cungSo % 2 == 0) else 1
         self.cungTen = diaChi[self.cungSo]['tenChi']
+        self.cungCan = None  # NOTE: Will be set by nhapCanCung() method
         self.cungThan = False
 
     def themSao(self, sao):
@@ -44,6 +45,16 @@ class cungDiaBan(object):
 
     def anTriet(self):
         self.trietLo = True
+
+    def cungDaiVan(self, tenCungDaiVan):
+        """Assign Đại Vận palace name to this palace."""
+        self.cungDaiVan = tenCungDaiVan
+        return self
+
+    def cungTieuVan(self, tenCungTieuVan):
+        """Assign Tiểu Vận palace name to this palace."""
+        self.cungTieuVan = tenCungTieuVan
+        return self
 
 
 class diaBan(object):
@@ -174,6 +185,130 @@ class diaBan(object):
         for cung in self.thapNhiCung:
             khoangCach = khoangCachCung(cung.cungSo, viTriCungTy1, gioiTinh)
             cung.tieuHan(khoangCach)
+        return self
+
+    def nhapCungDaiVan(self, tuoiAmLich):
+        """
+        Nhập cung Đại Vận dựa trên tuổi âm lịch.
+
+        Logic: Tìm cung có Đại Hạn thỏa mãn điều kiện:
+        tuoiAmLich >= cungDaiHan AND tuoiAmLich < cungDaiHan kế tiếp
+
+        Sau đó an 12 cung đại vận theo chiều kim đồng hồ (thuận):
+        Mệnh, Phụ mẫu, Phúc đức, Điền trạch, Quan lộc, Nô bộc,
+        Thiên di, Tật Ách, Tài Bạch, Tử tức, Phu thê, Huynh đệ
+
+        Args:
+            tuoiAmLich (int): Tuổi âm lịch hiện tại
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Palace names in clockwise order with ".ĐV" suffix, all uppercase
+        cungDaiVanNames = [
+            "MỆNH.ĐV", "PHỤ MẪU.ĐV", "PHÚC ĐỨC.ĐV", "ĐIỀN TRẠCH.ĐV",
+            "QUAN LỘC.ĐV", "NÔ BỘC.ĐV", "THIÊN DI.ĐV", "TẬT ÁCH.ĐV",
+            "TÀI BẠCH.ĐV", "TỬ TỨC.ĐV", "PHU THÊ.ĐV", "HUYNH ĐỆ.ĐV"
+        ]
+
+        # NOTE: Find the palace where current age falls within Đại Hạn range
+        # Each Đại Hạn period is 10 years: age from X to X+9 belongs to Đại Hạn X
+        # Example: age 36 belongs to Đại Hạn 35 (covers ages 35-44)
+        cungDaiVanStart = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+
+            # Check if current age falls in this palace's Đại Hạn range
+            # Age X belongs to Đại Hạn Y if Y <= X < Y+10
+            if cung.cungDaiHan <= tuoiAmLich < cung.cungDaiHan + 10:
+                cungDaiVanStart = cung.cungSo
+                break
+
+        # NOTE: If no match found (edge case for very old age), use last palace
+        if cungDaiVanStart is None:
+            # Find palace with highest Đại Hạn
+            maxDaiHan = max(c.cungDaiHan for c in self.thapNhiCung if c.cungSo != 0)
+            for cung in self.thapNhiCung:
+                if cung.cungSo != 0 and cung.cungDaiHan == maxDaiHan:
+                    cungDaiVanStart = cung.cungSo
+                    break
+
+        # NOTE: Assign Đại Vận palace names clockwise starting from cungDaiVanStart
+        for i in range(12):
+            # Calculate target palace number (clockwise = +1 direction)
+            targetCungSo = dichCung(cungDaiVanStart, i)
+            self.thapNhiCung[targetCungSo].cungDaiVan(cungDaiVanNames[i])
+
+        return self
+
+    def nhapCungTieuVan(self, chiNamXem):
+        """
+        Nhập cung Tiểu Vận dựa trên địa chi của năm xem.
+
+        Logic: Tìm cung có địa chi trùng với địa chi của năm xem, an Mệnh Tiểu Vận ở cung đó.
+        Sau đó an 12 cung tiểu vận theo chiều kim đồng hồ (thuận):
+        Mệnh, Phụ mẫu, Phúc đức, Điền trạch, Quan lộc, Nô bộc,
+        Thiên di, Tật Ách, Tài Bạch, Tử tức, Phu thê, Huynh đệ
+
+        Args:
+            chiNamXem (int): Địa chi của năm xem (1-12)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Palace names in clockwise order with ".TV" suffix, all uppercase
+        cungTieuVanNames = [
+            "MỆNH.TV", "PHỤ MẪU.TV", "PHÚC ĐỨC.TV", "ĐIỀN TRẠCH.TV",
+            "QUAN LỘC.TV", "NÔ BỘC.TV", "THIÊN DI.TV", "TẬT ÁCH.TV",
+            "TÀI BẠCH.TV", "TỬ TỨC.TV", "PHU THÊ.TV", "HUYNH ĐỆ.TV"
+        ]
+
+        # NOTE: Find the palace with matching địa chi (cungSo corresponds to địa chi)
+        # Each cungSo represents a địa chi: 1=Tý, 2=Sửu, 3=Dần, ..., 12=Hợi
+        cungTieuVanStart = chiNamXem
+
+        # NOTE: Assign Tiểu Vận palace names clockwise starting from cungTieuVanStart
+        for i in range(12):
+            # Calculate target palace number (clockwise = +1 direction)
+            targetCungSo = dichCung(cungTieuVanStart, i)
+            self.thapNhiCung[targetCungSo].cungTieuVan(cungTieuVanNames[i])
+
+        return self
+
+    def nhapCanCung(self, canNamSinh):
+        """
+        Tính và gán Thiên Can cho 12 cung dựa trên Can năm sinh.
+
+        Theo trường phái: Can của cung = Can của tháng tương ứng với vị trí cung.
+
+        Logic:
+        - Can tháng Giêng = (canNamSinh * 2 + 1) % 10
+        - Can cung = ((viTriCung - 3) % 12 + canThangGieng) % 10
+        - Vị trí 3 = Dần = Tháng Giêng (tháng 1)
+
+        Args:
+            canNamSinh (int): Can của năm sinh (1-10)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Calculate Can of Giêng (first lunar month)
+        canThangGieng = (canNamSinh * 2 + 1) % 10
+
+        # NOTE: Calculate and assign Can for each of 12 palaces
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+
+            # Calculate Can for this palace
+            canCung = ((cung.cungSo - 3) % 12 + canThangGieng) % 10
+            if canCung == 0:
+                canCung = 10
+
+            # Assign Can name to palace
+            cung.cungCan = thienCan[canCung]['tenCan']
+
         return self
 
     def nhapCungThan(self):

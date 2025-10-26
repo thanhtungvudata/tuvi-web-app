@@ -58,6 +58,9 @@ def lapDiaBan(diaBan, nn, tt, nnnn, gioSinh, gioiTinh, duongLich, timeZone):
     khoiHan = dichCung(11, -3 * (chiNam - 1))
     diaBan = diaBan.nhapTieuHan(khoiHan, gioiTinh, chiNam)
 
+    # NOTE: Calculate and assign Can (Thiên Can) for all 12 palaces based on birth year
+    diaBan = diaBan.nhapCanCung(canNam)
+
     # Bắt đầu an Tử vi tinh hệ
     viTriTuVi = timTuVi(cucSo, nn)
     diaBan.nhapSao(viTriTuVi, saoTuVi)

@@ -80,3 +80,13 @@ class lapThienBan(object):
             self.sinhKhac = "Cục hòa Bản Mệnh"
 
         self.banMenh = nguHanhNapAm(self.chiNam, self.canNam, True)
+
+    def tinhTuoiAmLich(self, namXem):
+        """
+        Tính tuổi âm lịch (tuổi ta) theo công thức: Năm xem - Năm sinh + 1
+        Args:
+            namXem (int): Năm xem (năm hiện tại hoặc năm muốn xem)
+        Returns:
+            int: Tuổi âm lịch
+        """
+        return namXem - self.namAm + 1

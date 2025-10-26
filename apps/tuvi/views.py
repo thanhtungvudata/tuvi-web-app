@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from core.calculations.DiaBan import diaBan
 from core.calculations.ThienBan import lapThienBan
+from core.calculations.AmDuong import thienCan, diaChi
 
 from apps.tuvi.utils import lapDiaBan
 from apps.tuvi.models import SavedLaSo, Folder
@@ -34,10 +35,30 @@ def api(request):
                    gioiTinh, duongLich, timeZone)
     thienBan = lapThienBan(ngaySinh, thangSinh, namSinh,
                            gioSinh, gioiTinh, hoTen, db)
+
+    # NOTE: Calculate lunar age (Vietnamese traditional age)
+    tuoiAmLich = thienBan.tinhTuoiAmLich(namXem)
+
+    # NOTE: Calculate and assign Đại Vận palaces based on lunar age
+    _ = db.nhapCungDaiVan(tuoiAmLich)
+
+    # NOTE: Calculate Can Chi for namXem (năm âm lịch tương ứng với năm dương lịch)
+    # Năm dương lịch thường tương ứng với năm âm lịch cùng số (ví dụ: 2025 DL = Ất Tị 2025 ÂL)
+    canNamXem = (namXem + 6) % 10 + 1
+    chiNamXem = (namXem + 8) % 12 + 1
+    canNamXemTen = thienCan[canNamXem]['tenCan']
+    chiNamXemTen = diaChi[chiNamXem]['tenChi']
+    namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+
+    # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namXem
+    _ = db.nhapCungTieuVan(chiNamXem)
+
     laso = {
         'thienBan': thienBan,
         'thapNhiCung': db.thapNhiCung,
-        'namXem': namXem
+        'namXem': namXem,
+        'tuoiAmLich': tuoiAmLich,
+        'namXemCanChi': namXemCanChi
     }
     my_return = (json.dumps(laso, default=lambda o: o.__dict__))
     return HttpResponse(my_return, content_type="application/json")
@@ -157,11 +178,32 @@ def save_laso(request):
         thienBan = lapThienBan(ngaysinh, thangsinh, namsinh,
                                giosinh, 1 if gioitinh == 'nam' else -1, hoten, db)
 
+        # NOTE: Calculate lunar age if namxem is provided
+        tuoiAmLich = thienBan.tinhTuoiAmLich(namxem) if namxem else None
+
+        # NOTE: Calculate and assign Đại Vận palaces if age is available
+        if tuoiAmLich:
+            _ = db.nhapCungDaiVan(tuoiAmLich)
+
+        # NOTE: Calculate Can Chi for namxem if provided
+        namXemCanChi = None
+        if namxem:
+            canNamXem = (namxem + 6) % 10 + 1
+            chiNamXem = (namxem + 8) % 12 + 1
+            canNamXemTen = thienCan[canNamXem]['tenCan']
+            chiNamXemTen = diaChi[chiNamXem]['tenChi']
+            namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+
+            # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namxem
+            _ = db.nhapCungTieuVan(chiNamXem)
+
         # Tạo chart_data JSON
         chart_data = {
             'thienBan': thienBan.__dict__,
             'thapNhiCung': [cung.__dict__ for cung in db.thapNhiCung],
-            'namXem': namxem
+            'namXem': namxem,
+            'tuoiAmLich': tuoiAmLich,
+            'namXemCanChi': namXemCanChi
         }
 
         # Lưu vào database
@@ -308,11 +350,32 @@ def update_laso(request):
         thienBan = lapThienBan(laso.ngaysinh, laso.thangsinh, laso.namsinh,
                                laso.giosinh, 1 if laso.gioitinh == 'nam' else -1, laso.hoten, db)
 
+        # NOTE: Calculate lunar age if namxem is provided
+        tuoiAmLich = thienBan.tinhTuoiAmLich(laso.namxem) if laso.namxem else None
+
+        # NOTE: Calculate and assign Đại Vận palaces if age is available
+        if tuoiAmLich:
+            _ = db.nhapCungDaiVan(tuoiAmLich)
+
+        # NOTE: Calculate Can Chi for namxem if provided
+        namXemCanChi = None
+        if laso.namxem:
+            canNamXem = (laso.namxem + 6) % 10 + 1
+            chiNamXem = (laso.namxem + 8) % 12 + 1
+            canNamXemTen = thienCan[canNamXem]['tenCan']
+            chiNamXemTen = diaChi[chiNamXem]['tenChi']
+            namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+
+            # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namxem
+            _ = db.nhapCungTieuVan(chiNamXem)
+
         # Tạo chart_data JSON
         laso.chart_data = {
             'thienBan': thienBan.__dict__,
             'thapNhiCung': [cung.__dict__ for cung in db.thapNhiCung],
-            'namXem': laso.namxem
+            'namXem': laso.namxem,
+            'tuoiAmLich': tuoiAmLich,
+            'namXemCanChi': namXemCanChi
         }
 
         laso.save()

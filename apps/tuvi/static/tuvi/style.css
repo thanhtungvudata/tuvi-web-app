@@ -709,6 +709,30 @@ body {
     white-space: nowrap;
 }
 
+/* Cung Đại Vận - góc phải dưới, trên dòng sao Vòng Trường Sinh */
+.cung-dai-van {
+    position: absolute;
+    bottom: 20px;
+    right: 5px;
+    font-size: 9px;
+    font-weight: bold;
+    color: #000000;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+/* Cung Tiểu Vận - góc trái dưới, trên dòng sao Vòng Trường Sinh */
+.cung-tieu-van {
+    position: absolute;
+    bottom: 20px;
+    left: 5px;
+    font-size: 9px;
+    font-weight: bold;
+    color: #000000;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
 /* Layout 2 cột cho phụ tinh: sao tốt (trái) và sao xấu (phải) */
 .cung-phu-tinh {
     margin-top: 5px;

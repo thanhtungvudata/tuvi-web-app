@@ -157,11 +157,13 @@ function renderLaSoTuVi(data) {
     const thienBan = data.thienBan;
     const thapNhiCung = data.thapNhiCung;
     const namXem = data.namXem;
+    const tuoiAmLich = data.tuoiAmLich;
+    const namXemCanChi = data.namXemCanChi;
 
     // Lưu lại data để có thể re-render khi toggle checkbox
     window.currentLaSoData = data;
 
-    renderThienBan(thienBan, thapNhiCung, namXem);
+    renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi);
     renderThapNhiCung(thapNhiCung, thienBan);
     renderTuanTrietMarkers(thapNhiCung);
 
@@ -188,7 +190,7 @@ function getGioTimeRange(chiName) {
     return gioMapping[chiName] || '';
 }
 
-function renderThienBan(thienBan, thapNhiCung, namXem) {
+function renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi) {
     const thienBanContent = document.querySelector('.thien-ban-content');
 
     // NOTE: Find which palace has cungThan = True to get the palace name for "Thân cư"
@@ -200,13 +202,21 @@ function renderThienBan(thienBan, thapNhiCung, namXem) {
     const timeRange = getGioTimeRange(chiGio);
     const gioSinhDisplay = timeRange ? `${timeRange} - ${thienBan.gioSinh}` : thienBan.gioSinh;
 
+    // NOTE: Format năm xem with lunar age and Can Chi if available
+    let namXemDisplay = namXem || '(Chưa chọn)';
+    if (namXem && tuoiAmLich && namXemCanChi) {
+        namXemDisplay = `${namXem} (${tuoiAmLich} tuổi) - ${namXemCanChi}`;
+    } else if (namXem && tuoiAmLich) {
+        namXemDisplay = `${namXem} (${tuoiAmLich} tuổi)`;
+    }
+
     const html = `
         <p><strong>Họ tên:</strong> <span class="value">${thienBan.ten}</span></p>
         <p><strong>Năm sinh:</strong> <span class="value">${thienBan.namDuong} - ${thienBan.canNamTen} ${thienBan.chiNamTen}</span></p>
         <p><strong>Tháng:</strong> <span class="value">${thienBan.thangDuong} (${thienBan.thangAm}) - ${thienBan.canThangTen} ${thienBan.chiThangTen}</span></p>
         <p><strong>Ngày:</strong> <span class="value">${thienBan.ngayDuong} (${thienBan.ngayAm}) - ${thienBan.canNgayTen} ${thienBan.chiNgayTen}</span></p>
         <p><strong>Giờ sinh:</strong> <span class="value">${gioSinhDisplay}</span></p>
-        <p><strong>Năm xem:</strong> <span class="value">${namXem || '(Chưa chọn)'}</span></p>
+        <p><strong>Năm xem:</strong> <span class="value">${namXemDisplay}</span></p>
         <p><strong>Âm dương:</strong> <span class="value">${thienBan.amDuongNamSinh} ${thienBan.namNu}</span></p>
         <p><strong>Mệnh:</strong> <span class="value">${thienBan.banMenh}</span></p>
         <p><strong>Cục:</strong> <span class="value">${thienBan.tenCuc}</span></p>
@@ -233,11 +243,12 @@ function renderThapNhiCung(thapNhiCung, thienBan) {
 
         let html = '';
 
-        // Header: Địa chi (trái) - Tên cung (giữa) - Đại hạn (phải)
+        // Header: Can Chi (trái) - Tên cung (giữa) - Đại hạn (phải)
         html += '<div class="cung-header">';
 
-        // Địa chi - góc trái trên
-        html += `<div class="cung-ten-chi">${cung.cungTen}</div>`;
+        // NOTE: Can Chi viết tắt - góc trái trên (ví dụ: K. Tỵ cho Kỷ Tỵ, M. Thìn cho Mậu Thìn)
+        const canChiCung = cung.cungCan ? `${cung.cungCan.charAt(0)}. ${cung.cungTen}` : cung.cungTen;
+        html += `<div class="cung-ten-chi">${canChiCung}</div>`;
 
         // Tên cung - giữa trên
         if (cung.cungChu) {
@@ -415,6 +426,18 @@ function renderThapNhiCung(thapNhiCung, thienBan) {
                 html += '</div>';
             }
 
+            // NOTE: Hiển thị Cung Đại Vận ở góc phải dưới (nếu checkbox được bật)
+            const hienCungDaiVan = document.getElementById('hiencungdaivan')?.checked ?? false;
+            if (hienCungDaiVan && cung.cungDaiVan) {
+                html += `<div class="cung-dai-van">${cung.cungDaiVan}</div>`;
+            }
+
+            // NOTE: Hiển thị Cung Tiểu Vận ở góc trái dưới (nếu checkbox được bật)
+            const hienCungTieuVan = document.getElementById('hiencungtieuan')?.checked ?? false;
+            if (hienCungTieuVan && cung.cungTieuVan) {
+                html += `<div class="cung-tieu-van">${cung.cungTieuVan}</div>`;
+            }
+
             // Hiển thị sao Vòng Trường Sinh ở đáy cung, căn giữa
             if (saoTrangSinh.length > 0) {
                 html += '<div class="cung-trang-sinh-wrapper">';
@@ -513,21 +536,35 @@ function highlightRelatedCung(cungSo) {
     currentHighlightedCung = cungSo;
 }
 
-// Attach event listener cho checkbox hiển thị phụ tinh
+// Attach event listener cho checkbox hiển thị phụ tinh, cung đại vận và cung tiểu vận
 function attachDisplayOptionsListener() {
     if (displayOptionsListenerAttached) return;
 
-    const checkbox = document.getElementById('hienphusao');
-    if (checkbox) {
-        checkbox.addEventListener('change', function() {
-            // Re-render lại lá số khi thay đổi tùy chọn
-            if (window.currentLaSoData) {
-                renderThapNhiCung(
-                    window.currentLaSoData.thapNhiCung,
-                    window.currentLaSoData.thienBan
-                );
-            }
-        });
-        displayOptionsListenerAttached = true;
+    const hienphusaoCheckbox = document.getElementById('hienphusao');
+    const hiencungdaivanCheckbox = document.getElementById('hiencungdaivan');
+    const hiencungtieuanCheckbox = document.getElementById('hiencungtieuan');
+
+    // NOTE: Handler function to re-render when any display option changes
+    const handleDisplayChange = function() {
+        if (window.currentLaSoData) {
+            renderThapNhiCung(
+                window.currentLaSoData.thapNhiCung,
+                window.currentLaSoData.thienBan
+            );
+        }
+    };
+
+    if (hienphusaoCheckbox) {
+        hienphusaoCheckbox.addEventListener('change', handleDisplayChange);
     }
+
+    if (hiencungdaivanCheckbox) {
+        hiencungdaivanCheckbox.addEventListener('change', handleDisplayChange);
+    }
+
+    if (hiencungtieuanCheckbox) {
+        hiencungtieuanCheckbox.addEventListener('change', handleDisplayChange);
+    }
+
+    displayOptionsListenerAttached = true;
 }
