@@ -14,54 +14,104 @@ from apps.tuvi.models import SavedLaSo, Folder
 
 
 def api(request):
-    now = datetime.datetime.now()
-    hoTen = (request.GET.get('hoten'))
-    ngaySinh = int(request.GET.get('ngaysinh', now.day))
-    thangSinh = int(request.GET.get('thangsinh', now.month))
-    namSinh = int(request.GET.get('namsinh', now.year))
-    gioiTinh = 1 if request.GET.get('gioitinh') == 'nam' else -1
-    gioSinh = int(request.GET.get('giosinh', 1))
-    timeZone = int(request.GET.get('muigio', 7))
-    duongLich = False if request.GET.get('amlich') == 'on' else True
-    namXem = int(request.GET.get('namxem', now.year))
+    try:
+        now = datetime.datetime.now()
+        hoTen = (request.GET.get('hoten'))
+        # NOTE: Handle empty strings for numeric parameters
+        ngaySinh = int(request.GET.get('ngaysinh') or now.day)
+        thangSinh = int(request.GET.get('thangsinh') or now.month)
+        namSinh = int(request.GET.get('namsinh') or now.year)
+        gioiTinh = 1 if request.GET.get('gioitinh') == 'nam' else -1
+        gioSinh = int(request.GET.get('giosinh') or 1)
+        timeZone = int(request.GET.get('muigio', 7))
+        duongLich = False if request.GET.get('amlich') == 'on' else True
+        namXem = int(request.GET.get('namxem') or now.year)
 
-    print("="*80)
-    print(f"DEBUG API - namxem from request: {request.GET.get('namxem')}")
-    print(f"DEBUG API - namXem parsed: {namXem}")
-    print(f"DEBUG API - now.year: {now.year}")
-    print("="*80)
+        print("="*80)
+        print(f"DEBUG API - namxem from request: {request.GET.get('namxem')}")
+        print(f"DEBUG API - namXem parsed: {namXem}")
+        print(f"DEBUG API - now.year: {now.year}")
+        print("="*80)
 
-    db = lapDiaBan(diaBan, ngaySinh, thangSinh, namSinh, gioSinh,
-                   gioiTinh, duongLich, timeZone)
-    thienBan = lapThienBan(ngaySinh, thangSinh, namSinh,
-                           gioSinh, gioiTinh, hoTen, db)
+        db = lapDiaBan(diaBan, ngaySinh, thangSinh, namSinh, gioSinh,
+                       gioiTinh, duongLich, timeZone)
+        thienBan = lapThienBan(ngaySinh, thangSinh, namSinh,
+                               gioSinh, gioiTinh, hoTen, db)
 
-    # NOTE: Calculate lunar age (Vietnamese traditional age)
-    tuoiAmLich = thienBan.tinhTuoiAmLich(namXem)
+        # NOTE: Calculate lunar age (Vietnamese traditional age)
+        tuoiAmLich = thienBan.tinhTuoiAmLich(namXem)
 
-    # NOTE: Calculate and assign Đại Vận palaces based on lunar age
-    _ = db.nhapCungDaiVan(tuoiAmLich)
+        # NOTE: Calculate and assign Đại Vận palaces based on lunar age
+        _ = db.nhapCungDaiVan(tuoiAmLich)
 
-    # NOTE: Calculate Can Chi for namXem (năm âm lịch tương ứng với năm dương lịch)
-    # Năm dương lịch thường tương ứng với năm âm lịch cùng số (ví dụ: 2025 DL = Ất Tị 2025 ÂL)
-    canNamXem = (namXem + 6) % 10 + 1
-    chiNamXem = (namXem + 8) % 12 + 1
-    canNamXemTen = thienCan[canNamXem]['tenCan']
-    chiNamXemTen = diaChi[chiNamXem]['tenChi']
-    namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+        # NOTE: Calculate and place Lưu Lộc Tồn Đại Vận star based on Can of Mệnh.ĐV palace
+        _ = db.nhapSaoLuuLocTonDaiVan()
 
-    # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namXem
-    _ = db.nhapCungTieuVan(chiNamXem)
+        # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Đại Vận based on L.Lộc tồn.ĐV
+        _ = db.nhapSaoLuuKinhDuongDaLaDaiVan()
 
-    laso = {
-        'thienBan': thienBan,
-        'thapNhiCung': db.thapNhiCung,
-        'namXem': namXem,
-        'tuoiAmLich': tuoiAmLich,
-        'namXemCanChi': namXemCanChi
-    }
-    my_return = (json.dumps(laso, default=lambda o: o.__dict__))
-    return HttpResponse(my_return, content_type="application/json")
+        # NOTE: Calculate Can Chi for namXem (năm âm lịch tương ứng với năm dương lịch)
+        # Năm dương lịch thường tương ứng với năm âm lịch cùng số (ví dụ: 2025 DL = Ất Tị 2025 ÂL)
+        canNamXem = (namXem + 6) % 10 + 1
+        chiNamXem = (namXem + 8) % 12 + 1
+        canNamXemTen = thienCan[canNamXem]['tenCan']
+        chiNamXemTen = diaChi[chiNamXem]['tenChi']
+        namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+
+        # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namXem
+        _ = db.nhapCungTieuVan(chiNamXem)
+
+        # NOTE: Calculate and place Lưu Lộc Tồn Tiểu Vận star based on Can of namXem
+        _ = db.nhapSaoLuuLocTonTieuVan(canNamXem)
+
+        # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Tiểu Vận based on L.Lộc tồn.TV
+        _ = db.nhapSaoLuuKinhDuongDaLaTieuVan()
+
+        laso = {
+            'thienBan': thienBan,
+            'thapNhiCung': db.thapNhiCung,
+            'namXem': namXem,
+            'tuoiAmLich': tuoiAmLich,
+            'namXemCanChi': namXemCanChi
+        }
+
+        # NOTE: Custom JSON serializer that handles both objects and dicts
+        def serialize_object(obj):
+            if isinstance(obj, dict):
+                # Already a dict, return as-is
+                return obj
+            elif hasattr(obj, '__dict__'):
+                # Has __dict__ attribute, convert to dict
+                return obj.__dict__
+            else:
+                # Primitive type, return as-is
+                return obj
+
+        my_return = (json.dumps(laso, default=serialize_object))
+        return HttpResponse(my_return, content_type="application/json")
+    except ValueError as e:
+        # Handle invalid input values (e.g., invalid date, non-numeric input)
+        error_msg = f"Dữ liệu nhập không hợp lệ: {str(e)}"
+        print(f"ERROR API - ValueError: {error_msg}")
+        import traceback
+        print("Full traceback:")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': error_msg
+        }, status=400)
+    except Exception as e:
+        # Handle any other unexpected errors
+        error_msg = f"Lỗi khi tính toán lá số: {str(e)}"
+        print(f"ERROR API - Exception: {error_msg}")
+        print(f"Exception type: {type(e).__name__}")
+        import traceback
+        print("Full traceback:")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': error_msg
+        }, status=500)
 
 
 def lasotuvi_new_index(request):
@@ -184,6 +234,10 @@ def save_laso(request):
         # NOTE: Calculate and assign Đại Vận palaces if age is available
         if tuoiAmLich:
             _ = db.nhapCungDaiVan(tuoiAmLich)
+            # NOTE: Calculate and place Lưu Lộc Tồn Đại Vận star
+            _ = db.nhapSaoLuuLocTonDaiVan()
+            # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Đại Vận
+            _ = db.nhapSaoLuuKinhDuongDaLaDaiVan()
 
         # NOTE: Calculate Can Chi for namxem if provided
         namXemCanChi = None
@@ -196,6 +250,9 @@ def save_laso(request):
 
             # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namxem
             _ = db.nhapCungTieuVan(chiNamXem)
+
+            # NOTE: Calculate and place Lưu Lộc Tồn Tiểu Vận star based on Can of namxem
+            _ = db.nhapSaoLuuLocTonTieuVan(canNamXem)
 
         # Tạo chart_data JSON
         chart_data = {
@@ -356,6 +413,10 @@ def update_laso(request):
         # NOTE: Calculate and assign Đại Vận palaces if age is available
         if tuoiAmLich:
             _ = db.nhapCungDaiVan(tuoiAmLich)
+            # NOTE: Calculate and place Lưu Lộc Tồn Đại Vận star
+            _ = db.nhapSaoLuuLocTonDaiVan()
+            # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Đại Vận
+            _ = db.nhapSaoLuuKinhDuongDaLaDaiVan()
 
         # NOTE: Calculate Can Chi for namxem if provided
         namXemCanChi = None
@@ -368,6 +429,9 @@ def update_laso(request):
 
             # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namxem
             _ = db.nhapCungTieuVan(chiNamXem)
+
+            # NOTE: Calculate and place Lưu Lộc Tồn Tiểu Vận star based on Can of namxem
+            _ = db.nhapSaoLuuLocTonTieuVan(canNamXem)
 
         # Tạo chart_data JSON
         laso.chart_data = {

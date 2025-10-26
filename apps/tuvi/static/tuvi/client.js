@@ -49,15 +49,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const apiUrl = '/api?' + params.toString();
 
         fetch(apiUrl)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    // Server returned an error response (4xx or 5xx)
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error || 'Lỗi không xác định từ server');
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
+                // Check if the response indicates an error
+                if (data.success === false) {
+                    throw new Error(data.error || 'Lỗi không xác định');
+                }
                 renderLaSoTuVi(data);
                 resultContainer.style.display = 'block';
                 resultContainer.scrollIntoView({ behavior: 'smooth' });
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi lập lá số. Vui lòng thử lại!');
+                console.error('Error details:', error);
+                // Display the actual error message to the user
+                alert('Có lỗi xảy ra khi lập lá số:\n\n' + error.message + '\n\nVui lòng kiểm tra lại thông tin nhập và thử lại!');
             });
         });
     }
@@ -154,14 +167,43 @@ function renderTuanTrietMarkers(thapNhiCung) {
 }
 
 function renderLaSoTuVi(data) {
+    // NOTE: Validate data before processing
+    if (!data || !data.thienBan || !data.thapNhiCung) {
+        console.error('Invalid data received:', data);
+        throw new Error('Dữ liệu trả về từ server không hợp lệ. Vui lòng thử lại!');
+    }
+
     const thienBan = data.thienBan;
-    const thapNhiCung = data.thapNhiCung;
+    // NOTE: Convert thapNhiCung from object to array if needed
+    let thapNhiCung = data.thapNhiCung;
+    if (!Array.isArray(thapNhiCung)) {
+        // Convert object to array (handles both dict and list serialization)
+        thapNhiCung = Object.values(thapNhiCung).map(value => {
+            // If the value is a number (index), skip it
+            if (typeof value === 'object' && value !== null) {
+                return value;
+            }
+            return null;
+        }).filter(v => v !== null);
+
+        // If conversion failed, try direct object access with numeric keys
+        if (thapNhiCung.length === 0) {
+            thapNhiCung = [];
+            for (let i = 0; i <= 12; i++) {
+                if (data.thapNhiCung[i]) {
+                    thapNhiCung[i] = data.thapNhiCung[i];
+                }
+            }
+        }
+    }
+
     const namXem = data.namXem;
     const tuoiAmLich = data.tuoiAmLich;
     const namXemCanChi = data.namXemCanChi;
 
     // Lưu lại data để có thể re-render khi toggle checkbox
     window.currentLaSoData = data;
+    window.currentLaSoData.thapNhiCung = thapNhiCung; // Save converted array
 
     renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi);
     renderThapNhiCung(thapNhiCung, thienBan);
@@ -231,6 +273,8 @@ function renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi)
 function renderThapNhiCung(thapNhiCung, thienBan) {
     // Kiểm tra trạng thái checkbox (mặc định TẮT = false = chỉ hiện sao quan trọng)
     const hienPhusao = document.getElementById('hienphusao')?.checked ?? false;
+    const hienSaoLuuDaiVan = document.getElementById('hiensaoluudaivan')?.checked ?? false;
+    const hienSaoLuuTieuVan = document.getElementById('hiensaoluutieuan')?.checked ?? false;
 
     // NOTE: Lưu lại cung đang được highlight trước khi re-render
     const savedHighlightedCung = currentHighlightedCung;
@@ -275,11 +319,27 @@ function renderThapNhiCung(thapNhiCung, thienBan) {
             // ===== LỌC SAO THEO TÙY CHỌN =====
             let danhSachSaoHienThi = cung.cungSao;
 
+            // NOTE: Helper functions to check star types
+            const isSaoLuuDaiVan = (sao) => sao.saoTen && sao.saoTen.startsWith('L.') && sao.saoTen.endsWith('.ĐV');
+            const isSaoLuuTieuVan = (sao) => sao.saoTen && sao.saoTen.startsWith('L.') && sao.saoTen.endsWith('.TV');
+
             if (!hienPhusao) {
-                // Chỉ hiển thị 32 sao quan trọng
+                // NOTE: Hiển thị 32 sao quan trọng + Sao Lưu Đại Vận + Sao Lưu Tiểu Vận (nếu checkbox tương ứng được bật)
                 danhSachSaoHienThi = cung.cungSao.filter(sao =>
-                    SAO_QUAN_TRONG_IDS.includes(sao.saoID)
+                    SAO_QUAN_TRONG_IDS.includes(sao.saoID) ||
+                    (hienSaoLuuDaiVan && isSaoLuuDaiVan(sao)) ||
+                    (hienSaoLuuTieuVan && isSaoLuuTieuVan(sao))
                 );
+            }
+
+            // NOTE: Lọc bỏ sao lưu đại vận nếu checkbox không được chọn
+            if (!hienSaoLuuDaiVan) {
+                danhSachSaoHienThi = danhSachSaoHienThi.filter(sao => !isSaoLuuDaiVan(sao));
+            }
+
+            // NOTE: Lọc bỏ sao lưu tiểu vận nếu checkbox không được chọn
+            if (!hienSaoLuuTieuVan) {
+                danhSachSaoHienThi = danhSachSaoHienThi.filter(sao => !isSaoLuuTieuVan(sao));
             }
 
             // ===== PHÂN LOẠI SAO: CHÍNH TINH, TRÀNG SINH, SAO TỐT, SAO XẤU, SAO KHÁC =====
@@ -543,6 +603,8 @@ function attachDisplayOptionsListener() {
     const hienphusaoCheckbox = document.getElementById('hienphusao');
     const hiencungdaivanCheckbox = document.getElementById('hiencungdaivan');
     const hiencungtieuanCheckbox = document.getElementById('hiencungtieuan');
+    const hiensaoluudaivanCheckbox = document.getElementById('hiensaoluudaivan');
+    const hiensaoluutieuanCheckbox = document.getElementById('hiensaoluutieuan');
 
     // NOTE: Handler function to re-render when any display option changes
     const handleDisplayChange = function() {
@@ -564,6 +626,14 @@ function attachDisplayOptionsListener() {
 
     if (hiencungtieuanCheckbox) {
         hiencungtieuanCheckbox.addEventListener('change', handleDisplayChange);
+    }
+
+    if (hiensaoluudaivanCheckbox) {
+        hiensaoluudaivanCheckbox.addEventListener('change', handleDisplayChange);
+    }
+
+    if (hiensaoluutieuanCheckbox) {
+        hiensaoluutieuanCheckbox.addEventListener('change', handleDisplayChange);
     }
 
     displayOptionsListenerAttached = true;

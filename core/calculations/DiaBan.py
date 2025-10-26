@@ -311,6 +311,174 @@ class diaBan(object):
 
         return self
 
+    def nhapSaoLuuLocTonDaiVan(self):
+        """
+        Tính và gán sao Lưu Lộc Tồn Đại Vận dựa trên Thiên Can của cung Mệnh.ĐV.
+
+        Logic:
+        1. Tìm cung có cungDaiVan = "MỆNH.ĐV"
+        2. Lấy Thiên Can của cung đó (cungCan)
+        3. Tra vị trí Lộc Tồn từ thienCan[canID]['vitriDiaBan']
+        4. Đặt sao L.Lộc tồn.ĐV vào cung đó
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import sao definition and thienCan lookup table
+        from core.calculations.Sao import saoLuuLocTonDaiVan
+
+        # NOTE: Find palace with "MỆNH.ĐV"
+        cungMenhDaiVan = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            if hasattr(cung, 'cungDaiVan') and cung.cungDaiVan == "MỆNH.ĐV":
+                cungMenhDaiVan = cung
+                break
+
+        # NOTE: If no Mệnh.ĐV found or no Can assigned, skip
+        if cungMenhDaiVan is None or cungMenhDaiVan.cungCan is None:
+            return self
+
+        # NOTE: Map Can name to Can ID
+        canID = None
+        for i, canData in enumerate(thienCan):
+            if canData['tenCan'] == cungMenhDaiVan.cungCan:
+                canID = i
+                break
+
+        # NOTE: If Can not found in lookup table, skip
+        if canID is None or canID == 0:
+            return self
+
+        # NOTE: Get Lộc Tồn position from thienCan lookup table
+        viTriLuuLocTonDaiVan = thienCan[canID]['vitriDiaBan']
+
+        # NOTE: Place L.Lộc tồn.ĐV star at calculated position
+        self.nhapSao(viTriLuuLocTonDaiVan, saoLuuLocTonDaiVan)
+
+        return self
+
+    def nhapSaoLuuLocTonTieuVan(self, canNamXem):
+        """
+        Tính và gán sao Lưu Lộc Tồn Tiểu Vận dựa trên Thiên Can của năm xem.
+
+        Logic:
+        1. Lấy Thiên Can của năm xem (canNamXem)
+        2. Tra vị trí Lộc Tồn từ thienCan[canNamXem]['vitriDiaBan']
+        3. Đặt sao L.Lộc tồn.TV vào cung đó
+
+        Args:
+            canNamXem (int): Can của năm xem (1-10)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import sao definition
+        from core.calculations.Sao import saoLuuLocTonTieuVan
+
+        # NOTE: Validate canNamXem
+        if canNamXem is None or canNamXem == 0:
+            return self
+
+        # NOTE: Get Lộc Tồn position from thienCan lookup table
+        viTriLuuLocTonTieuVan = thienCan[canNamXem]['vitriDiaBan']
+
+        # NOTE: Place L.Lộc tồn.TV star at calculated position
+        self.nhapSao(viTriLuuLocTonTieuVan, saoLuuLocTonTieuVan)
+
+        return self
+
+    def nhapSaoLuuKinhDuongDaLaDaiVan(self):
+        """
+        Tính và gán sao Lưu Kình Dương và Lưu Đà La Đại Vận dựa trên vị trí L.Lộc Tồn.ĐV.
+
+        Logic:
+        1. Tìm cung chứa sao "L.Lộc tồn.ĐV"
+        2. L.Đà la.ĐV = vị trí L.Lộc tồn.ĐV - 1 cung (ngược chiều)
+        3. L.Kình dương.ĐV = vị trí L.Lộc tồn.ĐV + 1 cung (thuận chiều)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import star definitions and helper function
+        from core.calculations.Sao import saoLuuKinhDuongDaiVan, saoLuuDaLaDaiVan
+        from core.calculations.AmDuong import dichCung
+
+        # NOTE: Find palace containing L.Lộc tồn.ĐV star
+        viTriLuuLocTonDaiVan = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            # Check if this palace has L.Lộc tồn.ĐV star
+            for sao in cung.cungSao:
+                # NOTE: sao is already a dict (converted in themSao method)
+                sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
+                if sao_ten == "L.Lộc tồn.ĐV":
+                    viTriLuuLocTonDaiVan = cung.cungSo
+                    break
+            if viTriLuuLocTonDaiVan is not None:
+                break
+
+        # NOTE: If L.Lộc tồn.ĐV not found, return without placing stars
+        if viTriLuuLocTonDaiVan is None:
+            return self
+
+        # NOTE: Calculate positions based on L.Lộc tồn.ĐV
+        # L.Đà la.ĐV is 1 palace backward (counter-clockwise)
+        viTriLuuDaLaDaiVan = dichCung(viTriLuuLocTonDaiVan, -1)
+        self.nhapSao(viTriLuuDaLaDaiVan, saoLuuDaLaDaiVan)
+
+        # L.Kình dương.ĐV is 1 palace forward (clockwise)
+        viTriLuuKinhDuongDaiVan = dichCung(viTriLuuLocTonDaiVan, 1)
+        self.nhapSao(viTriLuuKinhDuongDaiVan, saoLuuKinhDuongDaiVan)
+
+        return self
+
+    def nhapSaoLuuKinhDuongDaLaTieuVan(self):
+        """
+        Place L.Kình Dương.TV and L.Đà La.TV stars based on L.Lộc tồn.TV position.
+
+        L.Kình Dương.TV (Tiểu Vận) is placed 1 palace forward (clockwise) from L.Lộc tồn.TV.
+        L.Đà La.TV (Tiểu Vận) is placed 1 palace backward (counter-clockwise) from L.Lộc tồn.TV.
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import star definitions and helper function
+        from core.calculations.Sao import saoLuuKinhDuongTieuVan, saoLuuDaLaTieuVan
+        from core.calculations.AmDuong import dichCung
+
+        # NOTE: Find palace containing L.Lộc tồn.TV star
+        viTriLuuLocTonTieuVan = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            # Check if this palace has L.Lộc tồn.TV star
+            for sao in cung.cungSao:
+                # NOTE: sao is already a dict (converted in themSao method)
+                sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
+                if sao_ten == "L.Lộc tồn.TV":
+                    viTriLuuLocTonTieuVan = cung.cungSo
+                    break
+            if viTriLuuLocTonTieuVan is not None:
+                break
+
+        # NOTE: If L.Lộc tồn.TV not found, return without placing stars
+        if viTriLuuLocTonTieuVan is None:
+            return self
+
+        # NOTE: Calculate positions based on L.Lộc tồn.TV
+        # L.Đà la.TV is 1 palace backward (counter-clockwise)
+        viTriLuuDaLaTieuVan = dichCung(viTriLuuLocTonTieuVan, -1)
+        self.nhapSao(viTriLuuDaLaTieuVan, saoLuuDaLaTieuVan)
+
+        # L.Kình dương.TV is 1 palace forward (clockwise)
+        viTriLuuKinhDuongTieuVan = dichCung(viTriLuuLocTonTieuVan, 1)
+        self.nhapSao(viTriLuuKinhDuongTieuVan, saoLuuKinhDuongTieuVan)
+
+        return self
+
     def nhapCungThan(self):
         self.thapNhiCung[self.cungThan].anCungThan()
 
