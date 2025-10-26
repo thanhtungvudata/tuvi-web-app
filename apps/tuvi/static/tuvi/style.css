@@ -471,6 +471,121 @@ body {
     pointer-events: none;
 }
 
+/* Container for grid with Tuần markers */
+.lasotuvi-grid-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Tuần marker base styles */
+.tuan-marker {
+    position: absolute;
+    background: #000000;
+    color: #ffffff;
+    font-size: 8px;
+    font-weight: bold;
+    padding: 2px 4px;
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* Tuần positions for vertical pairs (middle of border) */
+/* Tuất-Hợi (cung 11-12): Right column, row 3-4 */
+.tuan-marker.tuat-hoi {
+    top: 602px;  /* Between row 3 and 4: 200*3 + gap*2 */
+    left: calc(155px * 3 + 1px * 3 + 155px / 2); /* Center of rightmost column: 543.5px */
+    transform: translate(-50%, -50%);
+}
+
+/* Thân-Dậu (cung 9-10): Right column, row 1-2 */
+.tuan-marker.than-dau {
+    top: 201px;  /* Between row 1 and 2: 200 + gap */
+    left: calc(155px * 3 + 1px * 3 + 155px / 2); /* Center of rightmost column: 543.5px */
+    transform: translate(-50%, -50%);
+}
+
+/* Thìn-Tỵ (cung 5-6): Left column, row 1-2 */
+.tuan-marker.thin-ty {
+    top: 201px;  /* Between row 1 and 2 */
+    left: calc(155px / 2);   /* Center of leftmost column: 77.5px */
+    transform: translate(-50%, -50%);
+}
+
+/* Dần-Mão (cung 3-4): Left column, row 3-4 */
+.tuan-marker.dan-mao {
+    top: 602px;  /* Between row 3 and 4 */
+    left: calc(155px / 2);   /* Center of leftmost column: 77.5px */
+    transform: translate(-50%, -50%);
+}
+
+/* Tuần positions for horizontal pairs */
+/* Ngọ-Mùi (cung 7-8): Top row, bottom corner intersection */
+.tuan-marker.ngo-mui {
+    top: 201px;  /* Between row 1 and 2 */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%);
+}
+
+/* Tý-Sửu (cung 1-2): Bottom row, top corner intersection */
+.tuan-marker.ty-suu {
+    top: 602px;  /* Between row 3 and 4 */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%);
+}
+
+/* Triệt marker base styles */
+.triet-marker {
+    position: absolute;
+    background: #000000;
+    color: #ffffff;
+    font-size: 8px;
+    font-weight: bold;
+    padding: 2px 4px;
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* Triệt positions for vertical pairs (middle of border) */
+/* Thân-Dậu (cung 9-10): Right column, row 1-2 */
+.triet-marker.than-dau {
+    top: 201px;  /* Between row 1 and 2: 200 + gap */
+    left: calc(155px * 3 + 1px * 3 + 155px / 2); /* Center of rightmost column: 543.5px */
+    transform: translate(-50%, -50%);
+}
+
+/* Thìn-Tỵ (cung 5-6): Left column, row 1-2 */
+.triet-marker.thin-ty {
+    top: 201px;  /* Between row 1 and 2 */
+    left: calc(155px / 2);   /* Center of leftmost column: 77.5px */
+    transform: translate(-50%, -50%);
+}
+
+/* Dần-Mão (cung 3-4): Left column, row 3-4 */
+.triet-marker.dan-mao {
+    top: 602px;  /* Between row 3 and 4 */
+    left: calc(155px / 2);   /* Center of leftmost column: 77.5px */
+    transform: translate(-50%, -50%);
+}
+
+/* Triệt positions for horizontal pairs */
+/* Ngọ-Mùi (cung 7-8): Top row, bottom corner intersection */
+.triet-marker.ngo-mui {
+    top: 201px;  /* Between row 1 and 2 */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%);
+}
+
+/* Tý-Sửu (cung 1-2): Bottom row, top corner intersection */
+.triet-marker.ty-suu {
+    top: 602px;  /* Between row 3 and 4 */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%);
+}
+
 /* Cung styles - HOÀN TOÀN KHÔNG có border */
 .cung {
     background: #fef9f3;

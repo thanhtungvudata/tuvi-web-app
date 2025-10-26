@@ -148,32 +148,37 @@
 
                 <!-- Wrapper căn giữa lá số -->
                 <div class="lasotuvi-grid-wrapper">
-                    <!-- Grid 4x4 cho 12 cung + thiên bàn -->
-                    <div class="lasotuvi-grid">
-                <!-- Hàng 1: Tỵ, Ngọ, Mùi, Thân -->
-                <div class="cung" data-cung="6" id="cung-6"></div>
-                <div class="cung" data-cung="7" id="cung-7"></div>
-                <div class="cung" data-cung="8" id="cung-8"></div>
-                <div class="cung" data-cung="9" id="cung-9"></div>
+                    <!-- Container with position: relative for absolute-positioned Tuần markers -->
+                    <div class="lasotuvi-grid-container">
+                        <!-- Grid 4x4 cho 12 cung + thiên bàn -->
+                        <div class="lasotuvi-grid">
+                    <!-- Hàng 1: Tỵ, Ngọ, Mùi, Thân -->
+                    <div class="cung" data-cung="6" id="cung-6"></div>
+                    <div class="cung" data-cung="7" id="cung-7"></div>
+                    <div class="cung" data-cung="8" id="cung-8"></div>
+                    <div class="cung" data-cung="9" id="cung-9"></div>
 
-                <!-- Hàng 2: Thìn, Thiên Bàn (colspan 2), Dậu -->
-                <div class="cung" data-cung="5" id="cung-5"></div>
-                <div class="thien-ban" id="thien-ban">
-                    <h2>TỬ VI TUỆ QUANG</h2>
-                    <div class="thien-ban-content"></div>
-                </div>
-                <div class="cung" data-cung="10" id="cung-10"></div>
+                    <!-- Hàng 2: Thìn, Thiên Bàn (colspan 2), Dậu -->
+                    <div class="cung" data-cung="5" id="cung-5"></div>
+                    <div class="thien-ban" id="thien-ban">
+                        <h2>TỬ VI TUỆ QUANG</h2>
+                        <div class="thien-ban-content"></div>
+                    </div>
+                    <div class="cung" data-cung="10" id="cung-10"></div>
 
-                <!-- Hàng 3: Mão, Thiên Bàn (tiếp), Tuất -->
-                <div class="cung" data-cung="4" id="cung-4"></div>
-                <!-- Thiên bàn chiếm 2 ô giữa, dùng grid-row: span 2 -->
-                <div class="cung" data-cung="11" id="cung-11"></div>
+                    <!-- Hàng 3: Mão, Thiên Bàn (tiếp), Tuất -->
+                    <div class="cung" data-cung="4" id="cung-4"></div>
+                    <!-- Thiên bàn chiếm 2 ô giữa, dùng grid-row: span 2 -->
+                    <div class="cung" data-cung="11" id="cung-11"></div>
 
-                <!-- Hàng 4: Dần, Sửu, Tý, Hợi -->
-                <div class="cung" data-cung="3" id="cung-3"></div>
-                <div class="cung" data-cung="2" id="cung-2"></div>
-                <div class="cung" data-cung="1" id="cung-1"></div>
-                <div class="cung" data-cung="12" id="cung-12"></div>
+                    <!-- Hàng 4: Dần, Sửu, Tý, Hợi -->
+                    <div class="cung" data-cung="3" id="cung-3"></div>
+                    <div class="cung" data-cung="2" id="cung-2"></div>
+                    <div class="cung" data-cung="1" id="cung-1"></div>
+                    <div class="cung" data-cung="12" id="cung-12"></div>
+                        </div>
+                        <!-- Container for Tuần markers (filled by JavaScript) -->
+                        <div id="tuan-markers-container"></div>
                     </div>
                 </div>
             </div>

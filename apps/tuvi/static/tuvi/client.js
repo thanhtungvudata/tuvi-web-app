@@ -63,6 +63,96 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// NOTE: Render Tuần and Triệt markers
+// If they are at the same position, render combined "TUẦN - TRIỆT" marker
+function renderTuanTrietMarkers(thapNhiCung) {
+    console.log('renderTuanTrietMarkers called');
+
+    const container = document.getElementById('tuan-markers-container');
+    if (!container) {
+        console.warn('tuan-markers-container not found');
+        return;
+    }
+
+    // Clear existing markers
+    container.innerHTML = '';
+
+    // Find Tuần cung pairs
+    const tuanCungs = [];
+    for (let i = 1; i <= 12; i++) {
+        if (thapNhiCung[i] && thapNhiCung[i].tuanTrung === true) {
+            tuanCungs.push(i);
+        }
+    }
+
+    // Find Triệt cung pairs
+    const trietCungs = [];
+    for (let i = 1; i <= 12; i++) {
+        if (thapNhiCung[i] && thapNhiCung[i].trietLo === true) {
+            trietCungs.push(i);
+        }
+    }
+
+    console.log('Found tuanCungs:', tuanCungs);
+    console.log('Found trietCungs:', trietCungs);
+
+    // Position map for all possible pairs
+    const positionMap = {
+        '1-2': 'ty-suu',
+        '3-4': 'dan-mao',
+        '5-6': 'thin-ty',
+        '7-8': 'ngo-mui',
+        '9-10': 'than-dau',
+        '11-12': 'tuat-hoi'
+    };
+
+    // Get pair keys
+    const tuanPairKey = tuanCungs.length === 2 ? `${tuanCungs.sort((a, b) => a - b).join('-')}` : null;
+    const trietPairKey = trietCungs.length === 2 ? `${trietCungs.sort((a, b) => a - b).join('-')}` : null;
+
+    console.log('Tuần pair:', tuanPairKey);
+    console.log('Triệt pair:', trietPairKey);
+
+    // Check if Tuần and Triệt are at the same position
+    if (tuanPairKey && trietPairKey && tuanPairKey === trietPairKey) {
+        // Same position: render combined marker
+        console.log('Tuần and Triệt at same position, rendering combined marker');
+        const positionClass = positionMap[tuanPairKey];
+        if (positionClass) {
+            const marker = document.createElement('div');
+            marker.className = `tuan-marker ${positionClass}`;
+            marker.textContent = 'TUẦN - TRIỆT';
+            container.appendChild(marker);
+            console.log('Combined TUẦN - TRIỆT marker created');
+        }
+    } else {
+        // Different positions: render separate markers
+        // Render Tuần marker
+        if (tuanPairKey) {
+            const positionClass = positionMap[tuanPairKey];
+            if (positionClass) {
+                const marker = document.createElement('div');
+                marker.className = `tuan-marker ${positionClass}`;
+                marker.textContent = 'TUẦN';
+                container.appendChild(marker);
+                console.log('TUẦN marker created at', tuanPairKey);
+            }
+        }
+
+        // Render Triệt marker
+        if (trietPairKey) {
+            const positionClass = positionMap[trietPairKey];
+            if (positionClass) {
+                const marker = document.createElement('div');
+                marker.className = `triet-marker ${positionClass}`;
+                marker.textContent = 'TRIỆT';
+                container.appendChild(marker);
+                console.log('TRIỆT marker created at', trietPairKey);
+            }
+        }
+    }
+}
+
 function renderLaSoTuVi(data) {
     const thienBan = data.thienBan;
     const thapNhiCung = data.thapNhiCung;
@@ -73,6 +163,7 @@ function renderLaSoTuVi(data) {
 
     renderThienBan(thienBan, thapNhiCung, namXem);
     renderThapNhiCung(thapNhiCung, thienBan);
+    renderTuanTrietMarkers(thapNhiCung);
 
     // Attach event listener cho checkbox (chỉ attach 1 lần)
     attachDisplayOptionsListener();

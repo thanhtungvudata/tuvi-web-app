@@ -422,7 +422,7 @@ def lapDiaBan(diaBan, nn, tt, nnnn, gioSinh, gioiTinh, duongLich, timeZone):
     elif canNam == 5:
         viTriHoaLoc = viTriThamLang
         viTriHoaQuyen = viTriThaiAm
-        viTriHoaKhoa = viTriHuuBat
+        viTriHoaKhoa = vitriThaiDuong
         viTriHoaKy = viTriThienCo
     elif canNam == 6:
         viTriHoaLoc = viTriVuKhuc
@@ -432,8 +432,8 @@ def lapDiaBan(diaBan, nn, tt, nnnn, gioSinh, gioiTinh, duongLich, timeZone):
     elif canNam == 7:
         viTriHoaLoc = vitriThaiDuong
         viTriHoaQuyen = viTriVuKhuc
-        viTriHoaKhoa = viTriThienDong
-        viTriHoaKy = viTriThaiAm
+        viTriHoaKhoa = viTriThaiAm
+        viTriHoaKy = viTriThienDong
     elif canNam == 8:
         viTriHoaLoc = viTriCuMon
         viTriHoaQuyen = vitriThaiDuong
