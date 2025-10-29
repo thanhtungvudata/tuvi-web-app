@@ -479,6 +479,182 @@ class diaBan(object):
 
         return self
 
+    def nhapSaoTuHoaLuuDaiVan(self):
+        """
+        Tính và gán Tứ Hóa Lưu Đại Vận dựa trên Thiên Can của cung Mệnh.ĐV.
+
+        Logic:
+        1. Tìm cung có cungDaiVan = "MỆNH.ĐV"
+        2. Lấy Thiên Can của cung đó (cungCan)
+        3. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
+        4. Đặt 4 sao L.Hóa lộc.ĐV, L.Hóa quyền.ĐV, L.Hóa khoa.ĐV, L.Hóa kỵ.ĐV
+           vào vị trí các sao Chính tinh tương ứng
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import star definitions
+        from core.calculations.Sao import (
+            saoLuuHoaLocDaiVan, saoLuuHoaQuyenDaiVan,
+            saoLuuHoaKhoaDaiVan, saoLuuHoaKyDaiVan
+        )
+
+        # NOTE: Find palace with "MỆNH.ĐV"
+        cungMenhDaiVan = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            if hasattr(cung, 'cungDaiVan') and cung.cungDaiVan == "MỆNH.ĐV":
+                cungMenhDaiVan = cung
+                break
+
+        # NOTE: If no Mệnh.ĐV found or no Can assigned, skip
+        if cungMenhDaiVan is None or cungMenhDaiVan.cungCan is None:
+            return self
+
+        # NOTE: Map Can name to Can ID
+        canID = None
+        for i, canData in enumerate(thienCan):
+            if canData['tenCan'] == cungMenhDaiVan.cungCan:
+                canID = i
+                break
+
+        # NOTE: If Can not found in lookup table, skip
+        if canID is None or canID == 0:
+            return self
+
+        # NOTE: Find positions of major stars (Chính tinh) to apply Tứ Hóa
+        # Build a map of star names to their palace positions
+        viTriSaoChinhTinh = {}
+        chinhTinhNames = [
+            "Tử vi", "Liêm trinh", "Thiên đồng", "Vũ khúc", "Thái Dương",
+            "Thiên cơ", "Thiên phủ", "Thái âm", "Tham lang", "Cự môn",
+            "Thiên tướng", "Thiên lương", "Thất sát", "Phá quân",
+            "Văn xương", "Văn Khúc"
+        ]
+
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            for sao in cung.cungSao:
+                sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
+                if sao_ten in chinhTinhNames:
+                    viTriSaoChinhTinh[sao_ten] = cung.cungSo
+
+        # NOTE: Tứ Hóa table based on Thiên Can (same as in App.py)
+        tuHoaTable = {
+            1: {"loc": "Liêm trinh", "quyen": "Phá quân", "khoa": "Vũ khúc", "ky": "Thái Dương"},
+            2: {"loc": "Thiên cơ", "quyen": "Thiên lương", "khoa": "Tử vi", "ky": "Thái âm"},
+            3: {"loc": "Thiên đồng", "quyen": "Thiên cơ", "khoa": "Văn xương", "ky": "Liêm trinh"},
+            4: {"loc": "Thái âm", "quyen": "Thiên đồng", "khoa": "Thiên cơ", "ky": "Cự môn"},
+            5: {"loc": "Tham lang", "quyen": "Thái âm", "khoa": "Thái Dương", "ky": "Thiên cơ"},
+            6: {"loc": "Vũ khúc", "quyen": "Tham lang", "khoa": "Thiên lương", "ky": "Văn Khúc"},
+            7: {"loc": "Thái Dương", "quyen": "Vũ khúc", "khoa": "Thái âm", "ky": "Thiên đồng"},
+            8: {"loc": "Cự môn", "quyen": "Thái Dương", "khoa": "Văn Khúc", "ky": "Văn xương"},
+            9: {"loc": "Thiên lương", "quyen": "Tử vi", "khoa": "Thiên phủ", "ky": "Vũ khúc"},
+            10: {"loc": "Phá quân", "quyen": "Cự môn", "khoa": "Thái âm", "ky": "Tham lang"},
+        }
+
+        # NOTE: Get Tứ Hóa for this Can
+        if canID not in tuHoaTable:
+            return self
+
+        tuHoa = tuHoaTable[canID]
+
+        # NOTE: Place Tứ Hóa Lưu Đại Vận stars
+        if tuHoa["loc"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["loc"]], saoLuuHoaLocDaiVan)
+
+        if tuHoa["quyen"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["quyen"]], saoLuuHoaQuyenDaiVan)
+
+        if tuHoa["khoa"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["khoa"]], saoLuuHoaKhoaDaiVan)
+
+        if tuHoa["ky"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["ky"]], saoLuuHoaKyDaiVan)
+
+        return self
+
+    def nhapSaoTuHoaLuuTieuVan(self, canNamXem):
+        """
+        Tính và gán Tứ Hóa Lưu Tiểu Vận dựa trên Thiên Can của năm xem.
+
+        Logic:
+        1. Lấy Thiên Can của năm xem (canNamXem)
+        2. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
+        3. Đặt 4 sao L.Hóa lộc.TV, L.Hóa quyền.TV, L.Hóa khoa.TV, L.Hóa kỵ.TV
+           vào vị trí các sao Chính tinh tương ứng
+
+        Args:
+            canNamXem (int): Can của năm xem (1-10)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import star definitions
+        from core.calculations.Sao import (
+            saoLuuHoaLocTieuVan, saoLuuHoaQuyenTieuVan,
+            saoLuuHoaKhoaTieuVan, saoLuuHoaKyTieuVan
+        )
+
+        # NOTE: Validate canNamXem
+        if canNamXem is None or canNamXem == 0:
+            return self
+
+        # NOTE: Find positions of major stars (Chính tinh) to apply Tứ Hóa
+        # Build a map of star names to their palace positions
+        viTriSaoChinhTinh = {}
+        chinhTinhNames = [
+            "Tử vi", "Liêm trinh", "Thiên đồng", "Vũ khúc", "Thái Dương",
+            "Thiên cơ", "Thiên phủ", "Thái âm", "Tham lang", "Cự môn",
+            "Thiên tướng", "Thiên lương", "Thất sát", "Phá quân",
+            "Văn xương", "Văn Khúc"
+        ]
+
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            for sao in cung.cungSao:
+                sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
+                if sao_ten in chinhTinhNames:
+                    viTriSaoChinhTinh[sao_ten] = cung.cungSo
+
+        # NOTE: Tứ Hóa table based on Thiên Can (same as in App.py)
+        tuHoaTable = {
+            1: {"loc": "Liêm trinh", "quyen": "Phá quân", "khoa": "Vũ khúc", "ky": "Thái Dương"},
+            2: {"loc": "Thiên cơ", "quyen": "Thiên lương", "khoa": "Tử vi", "ky": "Thái âm"},
+            3: {"loc": "Thiên đồng", "quyen": "Thiên cơ", "khoa": "Văn xương", "ky": "Liêm trinh"},
+            4: {"loc": "Thái âm", "quyen": "Thiên đồng", "khoa": "Thiên cơ", "ky": "Cự môn"},
+            5: {"loc": "Tham lang", "quyen": "Thái âm", "khoa": "Thái Dương", "ky": "Thiên cơ"},
+            6: {"loc": "Vũ khúc", "quyen": "Tham lang", "khoa": "Thiên lương", "ky": "Văn Khúc"},
+            7: {"loc": "Thái Dương", "quyen": "Vũ khúc", "khoa": "Thái âm", "ky": "Thiên đồng"},
+            8: {"loc": "Cự môn", "quyen": "Thái Dương", "khoa": "Văn Khúc", "ky": "Văn xương"},
+            9: {"loc": "Thiên lương", "quyen": "Tử vi", "khoa": "Thiên phủ", "ky": "Vũ khúc"},
+            10: {"loc": "Phá quân", "quyen": "Cự môn", "khoa": "Thái âm", "ky": "Tham lang"},
+        }
+
+        # NOTE: Get Tứ Hóa for this Can
+        if canNamXem not in tuHoaTable:
+            return self
+
+        tuHoa = tuHoaTable[canNamXem]
+
+        # NOTE: Place Tứ Hóa Lưu Tiểu Vận stars
+        if tuHoa["loc"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["loc"]], saoLuuHoaLocTieuVan)
+
+        if tuHoa["quyen"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["quyen"]], saoLuuHoaQuyenTieuVan)
+
+        if tuHoa["khoa"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["khoa"]], saoLuuHoaKhoaTieuVan)
+
+        if tuHoa["ky"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["ky"]], saoLuuHoaKyTieuVan)
+
+        return self
+
     def nhapCungThan(self):
         self.thapNhiCung[self.cungThan].anCungThan()
 

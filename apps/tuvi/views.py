@@ -50,6 +50,9 @@ def api(request):
         # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Đại Vận based on L.Lộc tồn.ĐV
         _ = db.nhapSaoLuuKinhDuongDaLaDaiVan()
 
+        # NOTE: Calculate and place Tứ Hóa Lưu Đại Vận based on Can of Mệnh.ĐV palace
+        _ = db.nhapSaoTuHoaLuuDaiVan()
+
         # NOTE: Calculate Can Chi for namXem (năm âm lịch tương ứng với năm dương lịch)
         # Năm dương lịch thường tương ứng với năm âm lịch cùng số (ví dụ: 2025 DL = Ất Tị 2025 ÂL)
         canNamXem = (namXem + 6) % 10 + 1
@@ -66,6 +69,9 @@ def api(request):
 
         # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Tiểu Vận based on L.Lộc tồn.TV
         _ = db.nhapSaoLuuKinhDuongDaLaTieuVan()
+
+        # NOTE: Calculate and place Tứ Hóa Lưu Tiểu Vận based on Can of namXem
+        _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
 
         laso = {
             'thienBan': thienBan,
@@ -238,6 +244,8 @@ def save_laso(request):
             _ = db.nhapSaoLuuLocTonDaiVan()
             # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Đại Vận
             _ = db.nhapSaoLuuKinhDuongDaLaDaiVan()
+            # NOTE: Calculate and place Tứ Hóa Lưu Đại Vận
+            _ = db.nhapSaoTuHoaLuuDaiVan()
 
         # NOTE: Calculate Can Chi for namxem if provided
         namXemCanChi = None
@@ -253,6 +261,12 @@ def save_laso(request):
 
             # NOTE: Calculate and place Lưu Lộc Tồn Tiểu Vận star based on Can of namxem
             _ = db.nhapSaoLuuLocTonTieuVan(canNamXem)
+
+            # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Tiểu Vận
+            _ = db.nhapSaoLuuKinhDuongDaLaTieuVan()
+
+            # NOTE: Calculate and place Tứ Hóa Lưu Tiểu Vận based on Can of namxem
+            _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
 
         # Tạo chart_data JSON
         chart_data = {
@@ -417,6 +431,8 @@ def update_laso(request):
             _ = db.nhapSaoLuuLocTonDaiVan()
             # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Đại Vận
             _ = db.nhapSaoLuuKinhDuongDaLaDaiVan()
+            # NOTE: Calculate and place Tứ Hóa Lưu Đại Vận
+            _ = db.nhapSaoTuHoaLuuDaiVan()
 
         # NOTE: Calculate Can Chi for namxem if provided
         namXemCanChi = None
@@ -432,6 +448,12 @@ def update_laso(request):
 
             # NOTE: Calculate and place Lưu Lộc Tồn Tiểu Vận star based on Can of namxem
             _ = db.nhapSaoLuuLocTonTieuVan(canNamXem)
+
+            # NOTE: Calculate and place Lưu Kình Dương và Lưu Đà La Tiểu Vận
+            _ = db.nhapSaoLuuKinhDuongDaLaTieuVan()
+
+            # NOTE: Calculate and place Tứ Hóa Lưu Tiểu Vận based on Can of namxem
+            _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
 
         # Tạo chart_data JSON
         laso.chart_data = {
