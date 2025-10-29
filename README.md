@@ -35,20 +35,28 @@ Tử Vi Web App is a web application for creating and managing Vietnamese astrol
 ```bash
 # 1. Clone and navigate
 git clone <repository-url>
-cd tuvi_web_app
+cd tuvi-web-app
 
 # 2. Setup environment (requires uv)
-uv venv && source .venv/bin/activate
+uv venv
+source .venv/bin/activate  # macOS/Linux
+# .venv\Scripts\activate   # Windows
+
+# 3. Install dependencies
 uv pip install -r requirements.txt
 
-# 3. Initialize and run
-python manage.py migrate
-python manage.py runserver
+# 4. Initialize database (IMPORTANT!)
+.venv/bin/python manage.py migrate
+
+# 5. Run development server
+.venv/bin/python manage.py runserver
 ```
 
 Open http://localhost:8000 in your browser.
 
 > **Note**: Install [uv](https://github.com/astral-sh/uv) first: `pip install uv`
+>
+> **Important**: You MUST run `migrate` command before starting the server to create all database tables. Without this step, you'll get "no such table" errors when trying to save charts.
 
 ## Table of Contents
 
@@ -98,19 +106,28 @@ Open http://localhost:8000 in your browser.
    uv pip install -r requirements.txt
    ```
 
-5. **Run migrations**
+5. **Initialize database** ⚠️ **REQUIRED**
    ```bash
-   python manage.py migrate
+   .venv/bin/python manage.py migrate
    ```
+
+   This creates all necessary database tables including:
+   - `lasotuvi_folder` - For organizing charts into folders
+   - `lasotuvi_savedlaso` - For storing saved charts
+   - Django default tables (auth, admin, sessions, etc.)
+
+   **Without this step**, you will encounter errors like:
+   - `no such table: lasotuvi_folder`
+   - `no such table: lasotuvi_savedlaso`
 
 6. **Create admin user** (optional)
    ```bash
-   python manage.py createsuperuser
+   .venv/bin/python manage.py createsuperuser
    ```
 
 7. **Start development server**
    ```bash
-   python manage.py runserver
+   .venv/bin/python manage.py runserver
    ```
 
 ## Usage
@@ -143,22 +160,23 @@ Open http://localhost:8000 in your browser.
 ## Project Structure
 
 ```
-tuvi_web_app/
+tuvi-web-app/
 ├── backend/              # Django configuration
 │   ├── settings.py
 │   ├── urls.py
 │   └── wsgi.py
 ├── apps/
 │   └── tuvi/            # Main application
-│       ├── models.py    # Data models
-│       ├── views.py     # Views & API
+│       ├── models.py    # Data models (Folder, SavedLaso)
+│       ├── views.py     # Views & API endpoints
 │       ├── templates/   # HTML templates
 │       └── static/      # CSS & JavaScript
 ├── core/
 │   └── calculations/    # Astrology calculation engine
-├── manage.py
-├── db.sqlite3
-└── requirements.txt
+├── .venv/               # Virtual environment (created by uv)
+├── manage.py            # Django management script
+├── db.sqlite3           # SQLite database (created after migrate)
+└── requirements.txt     # Python dependencies
 ```
 
 ## API Reference
