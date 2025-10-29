@@ -43,3 +43,7 @@ dist/
 htmlcov/
 .coverage
 .pytest_cache/
+
+#Claude
+CLAUDE.md
+.claude/
