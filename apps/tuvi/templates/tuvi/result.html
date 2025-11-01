@@ -327,7 +327,12 @@
                     <label>Chọn thư mục đích:</label>
                     <select id="move-folder-select">
                         <option value="">-- Chọn thư mục --</option>
+                        <option value="create_new">+ Tạo thư mục mới</option>
                     </select>
+                </div>
+                <div class="form-group" id="move-new-folder-group" style="display: none;">
+                    <label>Tên thư mục mới:</label>
+                    <input type="text" id="move-new-folder-name" placeholder="Nhập tên thư mục...">
                 </div>
             </div>
             <div class="modal-footer">
@@ -864,6 +869,7 @@
                     .then(data => {
                         const select = document.getElementById('move-folder-select');
                         select.innerHTML = '<option value="">-- Chọn thư mục --</option>';
+                        select.innerHTML += '<option value="create_new">+ Tạo thư mục mới</option>';
                         data.folders.forEach(folder => {
                             const option = document.createElement('option');
                             option.value = folder.id;
@@ -872,6 +878,17 @@
                         });
                         moveModal.style.display = 'block';
                     });
+            });
+
+            // Xử lý khi chọn "Tạo thư mục mới"
+            document.getElementById('move-folder-select').addEventListener('change', function() {
+                const newFolderGroup = document.getElementById('move-new-folder-group');
+                if (this.value === 'create_new') {
+                    newFolderGroup.style.display = 'block';
+                    document.getElementById('move-new-folder-name').focus();
+                } else {
+                    newFolderGroup.style.display = 'none';
+                }
             });
 
             btnMoveClose.addEventListener('click', function() {
@@ -885,33 +902,83 @@
             // Xử lý di chuyển
             document.getElementById('btn-move-confirm').addEventListener('click', function() {
                 const lasoId = currentLasoId;
-                const folderId = document.getElementById('move-folder-select').value;
+                const folderSelect = document.getElementById('move-folder-select');
+                const folderId = folderSelect.value;
 
                 if (!folderId) {
                     alert('Vui lòng chọn thư mục!');
                     return;
                 }
 
-                fetch(`/api/laso/${lasoId}/move/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ folder_id: folderId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        moveModal.style.display = 'none';
-                    } else {
-                        alert('Lỗi: ' + data.message);
+                // Nếu chọn tạo thư mục mới
+                if (folderId === 'create_new') {
+                    const newFolderName = document.getElementById('move-new-folder-name').value.trim();
+                    if (!newFolderName) {
+                        alert('Vui lòng nhập tên thư mục mới!');
+                        return;
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Có lỗi xảy ra!');
-                });
+
+                    // Tạo thư mục mới trước
+                    fetch('/api/folder/create/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name: newFolderName })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Sau khi tạo thư mục thành công, di chuyển lá số vào thư mục đó
+                            return fetch(`/api/laso/${lasoId}/move/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ folder_id: data.folder.id })
+                            });
+                        } else {
+                            throw new Error(data.message);
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            moveModal.style.display = 'none';
+                            document.getElementById('move-new-folder-name').value = '';
+                            document.getElementById('move-new-folder-group').style.display = 'none';
+                        } else {
+                            alert('Lỗi: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra: ' + error.message);
+                    });
+                } else {
+                    // Di chuyển vào thư mục đã có
+                    fetch(`/api/laso/${lasoId}/move/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ folder_id: folderId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            moveModal.style.display = 'none';
+                        } else {
+                            alert('Lỗi: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra!');
+                    });
+                }
             });
         }
 
