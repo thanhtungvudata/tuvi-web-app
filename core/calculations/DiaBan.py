@@ -1095,6 +1095,171 @@ class diaBan(object):
 
         return self
 
+    def nhapSaoTuHoaLuuGio(self, ngayXem, thangXem, namXem, gioXem):
+        """
+        Tính và gán Tứ Hóa Lưu Giờ dựa trên Thiên Can của giờ xem.
+
+        Logic:
+        1. Tính Thiên Can của giờ xem dựa vào công thức từ ThienBan.py
+        2. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
+        3. Đặt 4 sao Hóa lộc.Gi, Hóa quyền.Gi, Hóa khoa.Gi, Hóa kỵ.Gi
+           vào vị trí các sao Chính tinh tương ứng
+
+        Args:
+            ngayXem (int): Ngày xem (1-31)
+            thangXem (int): Tháng xem (1-12)
+            namXem (int): Năm xem
+            gioXem (int): Giờ xem (1=Tý, 2=Sửu, 3=Dần,...12=Hợi)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import star definitions
+        from core.calculations.Sao import (
+            saoLuuHoaLocGio, saoLuuHoaQuyenGio,
+            saoLuuHoaKhoaGio, saoLuuHoaKyGio
+        )
+        from core.calculations.AmDuong import jdFromDate
+
+        # NOTE: Validate input parameters
+        if not all([ngayXem, thangXem, namXem, gioXem]):
+            return self
+        if gioXem < 1 or gioXem > 12:
+            return self
+
+        # NOTE: Calculate Thiên Can of hour using same formula as in ThienBan.py
+        # Formula: canGioXem = ((jdFromDate(ngayXem, thangXem, namXem) - 1) * 2 % 10 + gioXem) % 10
+        jd = jdFromDate(ngayXem, thangXem, namXem)
+        canGioXem = ((jd - 1) * 2 % 10 + gioXem) % 10
+        if canGioXem == 0:
+            canGioXem = 10
+
+        # NOTE: Find positions of major stars (Chính tinh) to apply Tứ Hóa
+        viTriSaoChinhTinh = {}
+        chinhTinhNames = [
+            "Tử vi", "Liêm trinh", "Thiên đồng", "Vũ khúc", "Thái Dương",
+            "Thiên cơ", "Thiên phủ", "Thái âm", "Tham lang", "Cự môn",
+            "Thiên tướng", "Thiên lương", "Thất sát", "Phá quân",
+            "Văn xương", "Văn Khúc"
+        ]
+
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            for sao in cung.cungSao:
+                sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
+                if sao_ten in chinhTinhNames:
+                    viTriSaoChinhTinh[sao_ten] = cung.cungSo
+
+        # NOTE: Tứ Hóa table based on Thiên Can
+        tuHoaTable = {
+            1: {"loc": "Liêm trinh", "quyen": "Phá quân", "khoa": "Vũ khúc", "ky": "Thái Dương"},
+            2: {"loc": "Thiên cơ", "quyen": "Thiên lương", "khoa": "Tử vi", "ky": "Thái âm"},
+            3: {"loc": "Thiên đồng", "quyen": "Thiên cơ", "khoa": "Văn xương", "ky": "Liêm trinh"},
+            4: {"loc": "Thái âm", "quyen": "Thiên đồng", "khoa": "Thiên cơ", "ky": "Cự môn"},
+            5: {"loc": "Tham lang", "quyen": "Thái âm", "khoa": "Thái Dương", "ky": "Thiên cơ"},
+            6: {"loc": "Vũ khúc", "quyen": "Tham lang", "khoa": "Thiên lương", "ky": "Văn Khúc"},
+            7: {"loc": "Thái Dương", "quyen": "Vũ khúc", "khoa": "Thái âm", "ky": "Thiên đồng"},
+            8: {"loc": "Cự môn", "quyen": "Thái Dương", "khoa": "Văn Khúc", "ky": "Văn xương"},
+            9: {"loc": "Thiên lương", "quyen": "Tử vi", "khoa": "Thiên phủ", "ky": "Vũ khúc"},
+            10: {"loc": "Phá quân", "quyen": "Cự môn", "khoa": "Thái âm", "ky": "Tham lang"},
+        }
+
+        # NOTE: Get Tứ Hóa for this Can
+        if canGioXem not in tuHoaTable:
+            return self
+
+        tuHoa = tuHoaTable[canGioXem]
+
+        # NOTE: Place Tứ Hóa Lưu Giờ stars
+        if tuHoa["loc"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["loc"]], saoLuuHoaLocGio)
+
+        if tuHoa["quyen"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["quyen"]], saoLuuHoaQuyenGio)
+
+        if tuHoa["khoa"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["khoa"]], saoLuuHoaKhoaGio)
+
+        if tuHoa["ky"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["ky"]], saoLuuHoaKyGio)
+
+        return self
+
+    def nhapGioCanChi(self, ngayAmXem, ngayXem, thangXem, namXem, gioXem=None):
+        """
+        Đặt giờ Can Chi vào các cung dựa theo ngày âm lịch xem.
+
+        Logic:
+        1. Tìm cung có ngày vận khớp với ngày âm lịch xem → an giờ Tý vào cung đó
+        2. Các giờ tiếp theo được an theo chiều thuận kim đồng hồ (1→2→3→...→12)
+        3. Mỗi giờ có đầy đủ Thiên Can + Địa Chi, tính theo công thức "Nhật Thượng Khởi Giờ"
+        4. Giờ trùng với giờ xem sẽ được đánh dấu để in đậm
+
+        Args:
+            ngayAmXem (int): Ngày âm lịch xem (1-30)
+            ngayXem (int): Ngày dương lịch xem (dùng để tính Julian Day)
+            thangXem (int): Tháng dương lịch xem
+            namXem (int): Năm dương lịch xem
+            gioXem (int, optional): Giờ xem (1=Tý, 2=Sửu,...12=Hợi) để đánh dấu in đậm
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        from core.calculations.AmDuong import jdFromDate
+
+        if not all([ngayAmXem, ngayXem, thangXem, namXem]):
+            return self
+
+        # NOTE: Find palace with matching ngayThang (day transit)
+        cungGioTy = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            # Check if this palace has ngayThang and contains ngayAmXem
+            if hasattr(cung, 'ngayThang') and ngayAmXem in cung.ngayThang:
+                cungGioTy = cung.cungSo
+                break
+
+        if cungGioTy is None:
+            return self
+
+        # NOTE: Calculate Thiên Can of hour Tý using Julian Day
+        # Formula from ThienBan.py: canGioTy = ((jd - 1) * 2 % 10 + 1) % 10
+        jd = jdFromDate(ngayXem, thangXem, namXem)
+        canGioTy = ((jd - 1) * 2 % 10 + 1) % 10
+        if canGioTy == 0:
+            canGioTy = 10
+
+        # NOTE: Place 12 hours Can Chi clockwise starting from cungGioTy
+        for i in range(12):
+            # Calculate palace number (clockwise: 1→2→3→...→12→1)
+            cungSo = (cungGioTy + i - 1) % 12 + 1
+
+            # Calculate Thiên Can for this hour (cycles through 10 Cans)
+            canGio = (canGioTy + i - 1) % 10 + 1
+
+            # Địa Chi for this hour (i=0 is Tý, i=1 is Sửu, etc.)
+            chiGio = i + 1
+
+            # Get abbreviated Can and Chi names
+            tenCan = thienCan[canGio]['tenCan'][0]  # First character
+            tenChi = diaChi[chiGio]['tenChi']
+
+            # Format: "Gi.B.Tuất" (Gi = Giờ, B = Bính)
+            gioCanChi = f"Gi.{tenCan}.{tenChi}"
+
+            # Assign to palace
+            self.thapNhiCung[cungSo].gioCanChi = gioCanChi
+
+            # NOTE: Mark hour matching gioXem for bold display
+            if gioXem and chiGio == gioXem:
+                self.thapNhiCung[cungSo].gioCanChiBold = True
+            else:
+                self.thapNhiCung[cungSo].gioCanChiBold = False
+
+        return self
+
     def nhapCungThan(self):
         self.thapNhiCung[self.cungThan].anCungThan()
 

@@ -131,6 +131,13 @@ saoLuuHoaLocNgay = Sao(128, "Hóa lộc.Ng", "M", 3, "Lưu tinh")
 saoLuuHoaQuyenNgay = Sao(129, "Hóa quyền.Ng", "M", 4, "Lưu tinh")
 saoLuuHoaKhoaNgay = Sao(130, "Hóa khoa.Ng", "M", 5, "Lưu tinh")
 saoLuuHoaKyNgay = Sao(131, "Hóa kỵ.Ng", "T", 13, "Lưu tinh")
+
+# Tứ Hóa Lưu Giờ
+saoLuuHoaLocGio = Sao(132, "Hóa lộc.Gi", "M", 3, "Lưu tinh")
+saoLuuHoaQuyenGio = Sao(133, "Hóa quyền.Gi", "M", 4, "Lưu tinh")
+saoLuuHoaKhoaGio = Sao(134, "Hóa khoa.Gi", "M", 5, "Lưu tinh")
+saoLuuHoaKyGio = Sao(135, "Hóa kỵ.Gi", "T", 13, "Lưu tinh")
+
 saoLucSi = Sao(28, "Lực sĩ", "H", 2)
 saoThanhLong = Sao(29, "Thanh long", "T", 5)
 saoTieuHao = Sao(30, "Tiểu hao", "H", 12)

@@ -32,6 +32,7 @@ def api(request):
         ngayXem = int(request.GET.get('ngayxem') or now.day)
         thangXem = int(request.GET.get('thangxem') or now.month)
         amlichXem = request.GET.get('amlichxem') == 'on'
+        gioXem = int(request.GET.get('gioxem') or 1)
 
         print("="*80)
         print(f"DEBUG API - ALL PARAMS: {dict(request.GET)}")
@@ -122,6 +123,20 @@ def api(request):
         # NOTE: Calculate and place Tứ Hóa Lưu Ngày based on Can of day matching ngayAmXem
         _ = db.nhapSaoTuHoaLuuNgay(ngayAmXem)
 
+        # NOTE: Calculate and place Tứ Hóa Lưu Giờ based on Can of hour (gioxem)
+        # nhapSaoTuHoaLuuGio needs solar date to calculate Julian Day for accurate Thiên Can
+        # Convert to solar if amlichXem is True
+        if amlichXem:
+            from core.calculations.Lich_HND import L2S
+            ngayDuongXem, thangDuongXem, namDuongXem = L2S(ngayXem, thangXem, namXem, False, timeZone)
+        else:
+            ngayDuongXem, thangDuongXem, namDuongXem = ngayXem, thangXem, namXem
+        _ = db.nhapSaoTuHoaLuuGio(ngayDuongXem, thangDuongXem, namDuongXem, gioXem)
+
+        # NOTE: Place Giờ Can Chi in palaces based on lunar day
+        # Pass gioXem to mark the matching hour for bold display
+        _ = db.nhapGioCanChi(ngayAmXem, ngayDuongXem, thangDuongXem, namDuongXem, gioXem)
+
         laso = {
             'thienBan': thienBan,
             'thapNhiCung': db.thapNhiCung,
@@ -133,7 +148,8 @@ def api(request):
             'ngayXemCanChi': ngayXemCanChi,
             'ngayXem': ngayXem,
             'thangXem': thangXem,
-            'amlichXem': amlichXem
+            'amlichXem': amlichXem,
+            'gioXem': gioXem
         }
 
         # NOTE: Custom JSON serializer that handles both objects and dicts
@@ -199,6 +215,7 @@ def lasotuvi_new_index(request):
         'thangxem': int(request.GET.get('thangxem', str(current_month))),
         'namxem': int(request.GET.get('namxem', str(current_year))),
         'amlichxem': request.GET.get('amlichxem', 'off'),
+        'gioxem': request.GET.get('gioxem', '1'),
         'year_range': year_range,
         'birth_year_range': birth_year_range,
     }
@@ -238,6 +255,7 @@ def lasotuvi_new_result(request):
                 'thangxem': int(request.GET.get('thangxem', str(current_month))),
                 'namxem': int(request.GET.get('namxem', str(current_year))),
                 'amlichxem': request.GET.get('amlichxem', 'off'),
+                'gioxem': request.GET.get('gioxem', '1'),
                 'year_range': year_range,
                 'birth_year_range': birth_year_range,
             }
@@ -256,6 +274,7 @@ def lasotuvi_new_result(request):
                 'thangxem': int(request.GET.get('thangxem', str(current_month))),
                 'namxem': int(request.GET.get('namxem', str(current_year))),
                 'amlichxem': request.GET.get('amlichxem', 'off'),
+                'gioxem': request.GET.get('gioxem', '1'),
                 'year_range': year_range,
                 'birth_year_range': birth_year_range,
             }
@@ -275,6 +294,7 @@ def lasotuvi_new_result(request):
             'thangxem': int(request.GET.get('thangxem', str(current_month))),
             'namxem': int(request.GET.get('namxem', str(current_year))),
             'amlichxem': request.GET.get('amlichxem', 'off'),
+            'gioxem': request.GET.get('gioxem', '1'),
             'year_range': year_range,
             'birth_year_range': birth_year_range,
         }
@@ -623,6 +643,7 @@ def update_laso(request):
         ngayxem = int(data.get('ngayxem')) if data.get('ngayxem') else now.day
         thangxem = int(data.get('thangxem')) if data.get('thangxem') else now.month
         amlichxem = data.get('amlichxem') == 'on'
+        gioxem = int(data.get('gioxem', 1))
 
         # Tính toán lại chart_data với thông tin mới
         duongLich = not laso.amlich
@@ -708,6 +729,20 @@ def update_laso(request):
             # NOTE: Calculate and place Tứ Hóa Lưu Ngày based on Can of day matching ngayAmXem
             _ = db.nhapSaoTuHoaLuuNgay(ngayAmXem)
 
+            # NOTE: Calculate and place Tứ Hóa Lưu Giờ based on Can of hour (gioxem)
+            # nhapSaoTuHoaLuuGio needs solar date to calculate Julian Day for accurate Thiên Can
+            # Convert to solar if amlichxem is True
+            if amlichxem:
+                from core.calculations.Lich_HND import L2S
+                ngayDuongXem, thangDuongXem, namDuongXem = L2S(ngayxem, thangxem, laso.namxem, False, laso.muigio)
+            else:
+                ngayDuongXem, thangDuongXem, namDuongXem = ngayxem, thangxem, laso.namxem
+            _ = db.nhapSaoTuHoaLuuGio(ngayDuongXem, thangDuongXem, namDuongXem, gioxem)
+
+            # NOTE: Place Giờ Can Chi in palaces based on lunar day
+            # Pass gioxem to mark the matching hour for bold display
+            _ = db.nhapGioCanChi(ngayAmXem, ngayDuongXem, thangDuongXem, namDuongXem, gioxem)
+
         # Tạo chart_data JSON
         laso.chart_data = {
             'thienBan': thienBan.__dict__,
@@ -720,7 +755,8 @@ def update_laso(request):
             'ngayXemCanChi': ngayXemCanChi,
             'ngayXem': ngayxem,
             'thangXem': thangxem,
-            'amlichXem': amlichxem
+            'amlichXem': amlichxem,
+            'gioXem': gioxem
         }
 
         laso.save()

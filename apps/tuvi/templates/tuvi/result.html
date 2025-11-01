@@ -159,6 +159,24 @@
                                 </label>
                             </div>
 
+                            <div class="edit-form-group">
+                                <label>Giờ xem:</label>
+                                <select name="gioxem">
+                                    <option value="1" {% if gioxem == '1' %}selected{% endif %}>Tý (23h-01h)</option>
+                                    <option value="2" {% if gioxem == '2' %}selected{% endif %}>Sửu (01h-03h)</option>
+                                    <option value="3" {% if gioxem == '3' %}selected{% endif %}>Dần (03h-05h)</option>
+                                    <option value="4" {% if gioxem == '4' %}selected{% endif %}>Mão (05h-07h)</option>
+                                    <option value="5" {% if gioxem == '5' %}selected{% endif %}>Thìn (07h-09h)</option>
+                                    <option value="6" {% if gioxem == '6' %}selected{% endif %}>Tỵ (09h-11h)</option>
+                                    <option value="7" {% if gioxem == '7' %}selected{% endif %}>Ngọ (11h-13h)</option>
+                                    <option value="8" {% if gioxem == '8' %}selected{% endif %}>Mùi (13h-15h)</option>
+                                    <option value="9" {% if gioxem == '9' %}selected{% endif %}>Thân (15h-17h)</option>
+                                    <option value="10" {% if gioxem == '10' %}selected{% endif %}>Dậu (17h-19h)</option>
+                                    <option value="11" {% if gioxem == '11' %}selected{% endif %}>Tuất (19h-21h)</option>
+                                    <option value="12" {% if gioxem == '12' %}selected{% endif %}>Hợi (21h-23h)</option>
+                                </select>
+                            </div>
+
                             <!-- Hidden input to preserve laso_id when updating -->
                             <input type="hidden" name="laso_id" id="hidden-laso-id" value="">
 
@@ -226,12 +244,17 @@
                         <br>
                         <label class="option-label">
                             <input type="checkbox" id="hienhanthang">
-                            <span>Tháng Vận</span>
+                            <span>Tháng vận</span>
                         </label>
                         <br>
                         <label class="option-label">
                             <input type="checkbox" id="hienngayvan">
-                            <span>Ngày Vận</span>
+                            <span>Ngày vận</span>
+                        </label>
+                        <br>
+                        <label class="option-label">
+                            <input type="checkbox" id="hiengiovan">
+                            <span>Giờ vận</span>
                         </label>
                         <br>
                         <label class="option-label">
@@ -252,6 +275,11 @@
                         <label class="option-label">
                             <input type="checkbox" id="hiensaoluunhatvan">
                             <span>Sao lưu ngày vận</span>
+                        </label>
+                        <br>
+                        <label class="option-label">
+                            <input type="checkbox" id="hiensaoluugiovan">
+                            <span>Sao lưu giờ vận</span>
                         </label>
                     </div>
                 </div>
@@ -419,6 +447,14 @@
                                 namxemSelect.value = namxemFromUrl || namxemFromChart || '';
                             }
 
+                            // Populate gioxem select - prioritize URL params, then chart_data
+                            const gioxemSelect = document.querySelector('select[name="gioxem"]');
+                            if (gioxemSelect) {
+                                const gioxemFromUrl = urlParams.get('gioxem');
+                                const gioxemFromChart = laso.chart_data?.gioXem;
+                                gioxemSelect.value = gioxemFromUrl || gioxemFromChart || '1';
+                            }
+
                             // Populate amlichxem checkbox - prioritize current viewing state, then chart_data
                             const amlichxemCheckbox = document.getElementById('amlichxem');
                             if (amlichxemCheckbox) {
@@ -507,7 +543,7 @@
 
             // NOTE: Restore checkbox states from localStorage and re-render if needed
             // IMPORTANT: Skip amlichxem if we have a saved laso (chart_data has the correct value)
-            const checkboxIds = ['hienphusao', 'hiencungdaivan', 'hiencungtieuan', 'hienhanthang', 'hienngayvan', 'hiensaoluudaivan', 'hiensaoluutieuan', 'hiensaoluunguyetvan', 'hiensaoluunhatvan', 'amlichxem'];
+            const checkboxIds = ['hienphusao', 'hiencungdaivan', 'hiencungtieuan', 'hienhanthang', 'hienngayvan', 'hiengiovan', 'hiensaoluudaivan', 'hiensaoluutieuan', 'hiensaoluunguyetvan', 'hiensaoluunhatvan', 'hiensaoluugiovan', 'amlichxem'];
             let needsRerender = false;
             const hasLasoId = new URLSearchParams(window.location.search).get('laso_id');
 
@@ -637,6 +673,7 @@
             const thangxemSelect = document.querySelector('select[name="thangxem"]');
             const namxemSelect = document.querySelector('select[name="namxem"]');
             const amlichxemCheckbox = document.getElementById('amlichxem');
+            const gioxemSelect = document.querySelector('select[name="gioxem"]');
 
             // DEBUG: Log current laso and form values before update
             console.log('========== DEBUG handleUpdateLaso ==========');
@@ -657,7 +694,8 @@
                 ngayxem: ngayxemSelect?.value || '1',
                 thangxem: thangxemSelect?.value || '1',
                 namxem: namxemSelect?.value || null,
-                amlichxem: amlichxemCheckbox?.checked ? 'on' : 'off'
+                amlichxem: amlichxemCheckbox?.checked ? 'on' : 'off',
+                gioxem: gioxemSelect?.value || '1'
             };
             console.log('Update data being sent:', updateData);
 
