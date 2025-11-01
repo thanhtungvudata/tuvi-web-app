@@ -1,12 +1,12 @@
-// Danh sách 45 sao quan trọng (luôn hiển thị)
+// Danh sách 33 sao quan trọng (luôn hiển thị)
+// NOTE: Sao Vòng Tràng Sinh (39-50) đã được loại bỏ - chỉ hiển thị khi tick "Hiện phụ tinh"
 const SAO_QUAN_TRONG_IDS = [
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,  // 14 Chính tinh
     61, 62, 59, 60, 57, 58,  // 6 Cát tinh (Tả phù, Hữu bật, Thiên khôi, Thiên việt, Văn xương, Văn khúc)
     52, 51, 53, 54, 55, 56,  // 6 Hung tinh (Kình dương, Đà la, Địa không, Địa kiếp, Linh tinh, Hỏa tinh)
     94, 93, 92, 95,  // Tứ hóa (Hóa lộc, Hóa quyền, Hóa khoa, Hóa kỵ)
     73, 98,  // Thiên hình, Thiên mã
-    27,      // Lộc tồn (sao quan trọng khác)
-    39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50  // 12 sao Vòng Tràng Sinh
+    27       // Lộc tồn (sao quan trọng khác)
 ];
 
 // NOTE: Phân loại sao tốt/xấu theo saoLoai (logic từ project cũ)
