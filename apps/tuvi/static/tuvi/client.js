@@ -325,10 +325,10 @@ function renderThapNhiCung(thapNhiCung, thienBan, ngayAmXem, thangAmXem, ngayXem
             let danhSachSaoHienThi = cung.cungSao;
 
             // NOTE: Helper functions to check star types
-            const isSaoLuuDaiVan = (sao) => sao.saoTen && sao.saoTen.startsWith('L.') && sao.saoTen.endsWith('.ĐV');
-            const isSaoLuuTieuVan = (sao) => sao.saoTen && sao.saoTen.startsWith('L.') && sao.saoTen.endsWith('.TV');
-            const isSaoLuuNguyetVan = (sao) => sao.saoTen && sao.saoTen.startsWith('L.') && sao.saoTen.endsWith('.T');
-            const isSaoLuuNhatVan = (sao) => sao.saoTen && sao.saoTen.startsWith('L.') && sao.saoTen.endsWith('.N');
+            const isSaoLuuDaiVan = (sao) => sao.saoTen && sao.saoTen.endsWith('.ĐV');
+            const isSaoLuuTieuVan = (sao) => sao.saoTen && sao.saoTen.endsWith('.TV');
+            const isSaoLuuNguyetVan = (sao) => sao.saoTen && sao.saoTen.endsWith('.Th');
+            const isSaoLuuNhatVan = (sao) => sao.saoTen && sao.saoTen.endsWith('.Ng');
 
             if (!hienPhusao) {
                 // NOTE: Hiển thị 32 sao quan trọng + Sao Lưu Đại Vận + Sao Lưu Tiểu Vận + Sao Lưu Nguyệt Vận + Sao Lưu Nhật Vận (nếu checkbox tương ứng được bật)

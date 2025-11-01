@@ -319,7 +319,7 @@ class diaBan(object):
         1. Tìm cung có cungDaiVan = "MỆNH.ĐV"
         2. Lấy Thiên Can của cung đó (cungCan)
         3. Tra vị trí Lộc Tồn từ thienCan[canID]['vitriDiaBan']
-        4. Đặt sao L.Lộc tồn.ĐV vào cung đó
+        4. Đặt sao Lộc tồn.ĐV vào cung đó
 
         Returns:
             self: DiaBan instance for chaining
@@ -354,7 +354,7 @@ class diaBan(object):
         # NOTE: Get Lộc Tồn position from thienCan lookup table
         viTriLuuLocTonDaiVan = thienCan[canID]['vitriDiaBan']
 
-        # NOTE: Place L.Lộc tồn.ĐV star at calculated position
+        # NOTE: Place Lộc tồn.ĐV star at calculated position
         self.nhapSao(viTriLuuLocTonDaiVan, saoLuuLocTonDaiVan)
 
         return self
@@ -366,7 +366,7 @@ class diaBan(object):
         Logic:
         1. Lấy Thiên Can của năm xem (canNamXem)
         2. Tra vị trí Lộc Tồn từ thienCan[canNamXem]['vitriDiaBan']
-        3. Đặt sao L.Lộc tồn.TV vào cung đó
+        3. Đặt sao Lộc tồn.TV vào cung đó
 
         Args:
             canNamXem (int): Can của năm xem (1-10)
@@ -384,19 +384,19 @@ class diaBan(object):
         # NOTE: Get Lộc Tồn position from thienCan lookup table
         viTriLuuLocTonTieuVan = thienCan[canNamXem]['vitriDiaBan']
 
-        # NOTE: Place L.Lộc tồn.TV star at calculated position
+        # NOTE: Place Lộc tồn.TV star at calculated position
         self.nhapSao(viTriLuuLocTonTieuVan, saoLuuLocTonTieuVan)
 
         return self
 
     def nhapSaoLuuKinhDuongDaLaDaiVan(self):
         """
-        Tính và gán sao Lưu Kình Dương và Lưu Đà La Đại Vận dựa trên vị trí L.Lộc Tồn.ĐV.
+        Tính và gán sao Lưu Kình Dương và Lưu Đà La Đại Vận dựa trên vị trí Lộc Tồn.ĐV.
 
         Logic:
-        1. Tìm cung chứa sao "L.Lộc tồn.ĐV"
-        2. L.Đà la.ĐV = vị trí L.Lộc tồn.ĐV - 1 cung (ngược chiều)
-        3. L.Kình dương.ĐV = vị trí L.Lộc tồn.ĐV + 1 cung (thuận chiều)
+        1. Tìm cung chứa sao "Lộc tồn.ĐV"
+        2. Đà la.ĐV = vị trí Lộc tồn.ĐV - 1 cung (ngược chiều)
+        3. Kình dương.ĐV = vị trí Lộc tồn.ĐV + 1 cung (thuận chiều)
 
         Returns:
             self: DiaBan instance for chaining
@@ -405,31 +405,31 @@ class diaBan(object):
         from core.calculations.Sao import saoLuuKinhDuongDaiVan, saoLuuDaLaDaiVan
         from core.calculations.AmDuong import dichCung
 
-        # NOTE: Find palace containing L.Lộc tồn.ĐV star
+        # NOTE: Find palace containing Lộc tồn.ĐV star
         viTriLuuLocTonDaiVan = None
         for cung in self.thapNhiCung:
             if cung.cungSo == 0:
                 continue
-            # Check if this palace has L.Lộc tồn.ĐV star
+            # Check if this palace has Lộc tồn.ĐV star
             for sao in cung.cungSao:
                 # NOTE: sao is already a dict (converted in themSao method)
                 sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
-                if sao_ten == "L.Lộc tồn.ĐV":
+                if sao_ten == "Lộc tồn.ĐV":
                     viTriLuuLocTonDaiVan = cung.cungSo
                     break
             if viTriLuuLocTonDaiVan is not None:
                 break
 
-        # NOTE: If L.Lộc tồn.ĐV not found, return without placing stars
+        # NOTE: If Lộc tồn.ĐV not found, return without placing stars
         if viTriLuuLocTonDaiVan is None:
             return self
 
-        # NOTE: Calculate positions based on L.Lộc tồn.ĐV
-        # L.Đà la.ĐV is 1 palace backward (counter-clockwise)
+        # NOTE: Calculate positions based on Lộc tồn.ĐV
+        # Đà la.ĐV is 1 palace backward (counter-clockwise)
         viTriLuuDaLaDaiVan = dichCung(viTriLuuLocTonDaiVan, -1)
         self.nhapSao(viTriLuuDaLaDaiVan, saoLuuDaLaDaiVan)
 
-        # L.Kình dương.ĐV is 1 palace forward (clockwise)
+        # Kình dương.ĐV is 1 palace forward (clockwise)
         viTriLuuKinhDuongDaiVan = dichCung(viTriLuuLocTonDaiVan, 1)
         self.nhapSao(viTriLuuKinhDuongDaiVan, saoLuuKinhDuongDaiVan)
 
@@ -437,10 +437,10 @@ class diaBan(object):
 
     def nhapSaoLuuKinhDuongDaLaTieuVan(self):
         """
-        Place L.Kình Dương.TV and L.Đà La.TV stars based on L.Lộc tồn.TV position.
+        Place Kình Dương.TV and Đà La.TV stars based on Lộc tồn.TV position.
 
-        L.Kình Dương.TV (Tiểu Vận) is placed 1 palace forward (clockwise) from L.Lộc tồn.TV.
-        L.Đà La.TV (Tiểu Vận) is placed 1 palace backward (counter-clockwise) from L.Lộc tồn.TV.
+        Kình Dương.TV (Tiểu Vận) is placed 1 palace forward (clockwise) from Lộc tồn.TV.
+        Đà La.TV (Tiểu Vận) is placed 1 palace backward (counter-clockwise) from Lộc tồn.TV.
 
         Returns:
             self: DiaBan instance for chaining
@@ -449,31 +449,31 @@ class diaBan(object):
         from core.calculations.Sao import saoLuuKinhDuongTieuVan, saoLuuDaLaTieuVan
         from core.calculations.AmDuong import dichCung
 
-        # NOTE: Find palace containing L.Lộc tồn.TV star
+        # NOTE: Find palace containing Lộc tồn.TV star
         viTriLuuLocTonTieuVan = None
         for cung in self.thapNhiCung:
             if cung.cungSo == 0:
                 continue
-            # Check if this palace has L.Lộc tồn.TV star
+            # Check if this palace has Lộc tồn.TV star
             for sao in cung.cungSao:
                 # NOTE: sao is already a dict (converted in themSao method)
                 sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
-                if sao_ten == "L.Lộc tồn.TV":
+                if sao_ten == "Lộc tồn.TV":
                     viTriLuuLocTonTieuVan = cung.cungSo
                     break
             if viTriLuuLocTonTieuVan is not None:
                 break
 
-        # NOTE: If L.Lộc tồn.TV not found, return without placing stars
+        # NOTE: If Lộc tồn.TV not found, return without placing stars
         if viTriLuuLocTonTieuVan is None:
             return self
 
-        # NOTE: Calculate positions based on L.Lộc tồn.TV
-        # L.Đà la.TV is 1 palace backward (counter-clockwise)
+        # NOTE: Calculate positions based on Lộc tồn.TV
+        # Đà la.TV is 1 palace backward (counter-clockwise)
         viTriLuuDaLaTieuVan = dichCung(viTriLuuLocTonTieuVan, -1)
         self.nhapSao(viTriLuuDaLaTieuVan, saoLuuDaLaTieuVan)
 
-        # L.Kình dương.TV is 1 palace forward (clockwise)
+        # Kình dương.TV is 1 palace forward (clockwise)
         viTriLuuKinhDuongTieuVan = dichCung(viTriLuuLocTonTieuVan, 1)
         self.nhapSao(viTriLuuKinhDuongTieuVan, saoLuuKinhDuongTieuVan)
 
@@ -487,7 +487,7 @@ class diaBan(object):
         1. Tìm cung có cungDaiVan = "MỆNH.ĐV"
         2. Lấy Thiên Can của cung đó (cungCan)
         3. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
-        4. Đặt 4 sao L.Hóa lộc.ĐV, L.Hóa quyền.ĐV, L.Hóa khoa.ĐV, L.Hóa kỵ.ĐV
+        4. Đặt 4 sao Hóa lộc.ĐV, Hóa quyền.ĐV, Hóa khoa.ĐV, Hóa kỵ.ĐV
            vào vị trí các sao Chính tinh tương ứng
 
         Returns:
@@ -583,7 +583,7 @@ class diaBan(object):
         Logic:
         1. Lấy Thiên Can của năm xem (canNamXem)
         2. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
-        3. Đặt 4 sao L.Hóa lộc.TV, L.Hóa quyền.TV, L.Hóa khoa.TV, L.Hóa kỵ.TV
+        3. Đặt 4 sao Hóa lộc.TV, Hóa quyền.TV, Hóa khoa.TV, Hóa kỵ.TV
            vào vị trí các sao Chính tinh tương ứng
 
         Args:
@@ -663,7 +663,7 @@ class diaBan(object):
         1. Tìm cung có thangLuuThaiTue = thangAmXem (tháng vận trùng với tháng xem)
         2. Lấy Thiên Can từ thangLuuThaiTueCanChi của cung đó
         3. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
-        4. Đặt 4 sao L.Hóa lộc.T, L.Hóa quyền.T, L.Hóa khoa.T, L.Hóa kỵ.T
+        4. Đặt 4 sao Hóa lộc.Th, Hóa quyền.Th, Hóa khoa.Th, Hóa kỵ.Th
            vào vị trí các sao Chính tinh tương ứng
 
         Args:
@@ -984,7 +984,7 @@ class diaBan(object):
         2. Tìm Can Chi tương ứng với ngày đó từ ngayLuuThaiTue
         3. Lấy Thiên Can từ Can Chi string
         4. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
-        5. Đặt 4 sao L.Hóa lộc.N, L.Hóa quyền.N, L.Hóa khoa.N, L.Hóa kỵ.N
+        5. Đặt 4 sao Hóa lộc.Ng, Hóa quyền.Ng, Hóa khoa.Ng, Hóa kỵ.Ng
            vào vị trí các sao Chính tinh tương ứng
 
         Args:
