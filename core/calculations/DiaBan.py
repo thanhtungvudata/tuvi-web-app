@@ -655,7 +655,119 @@ class diaBan(object):
 
         return self
 
-    def nhapThangLuuThaiTue(self, thangSinh, gioSinh):
+    def nhapSaoTuHoaLuuThang(self, thangAmXem):
+        """
+        Tính và gán Tứ Hóa Lưu Tháng dựa trên Thiên Can của tháng vận trùng với tháng âm lịch xem.
+
+        Logic:
+        1. Tìm cung có thangLuuThaiTue = thangAmXem (tháng vận trùng với tháng xem)
+        2. Lấy Thiên Can từ thangLuuThaiTueCanChi của cung đó
+        3. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
+        4. Đặt 4 sao L.Hóa lộc.T, L.Hóa quyền.T, L.Hóa khoa.T, L.Hóa kỵ.T
+           vào vị trí các sao Chính tinh tương ứng
+
+        Args:
+            thangAmXem (int): Tháng âm lịch xem (1-12)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import star definitions
+        from core.calculations.Sao import (
+            saoLuuHoaLocThang, saoLuuHoaQuyenThang,
+            saoLuuHoaKhoaThang, saoLuuHoaKyThang
+        )
+        from core.calculations.AmDuong import thienCan
+
+        # NOTE: Validate thangAmXem
+        if thangAmXem is None or thangAmXem < 1 or thangAmXem > 12:
+            return self
+
+        # NOTE: Find palace with thangLuuThaiTue matching thangAmXem
+        cungThangXem = None
+        thangCanChi = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            if hasattr(cung, 'thangLuuThaiTue') and cung.thangLuuThaiTue == thangAmXem:
+                cungThangXem = cung
+                if hasattr(cung, 'thangLuuThaiTueCanChi'):
+                    thangCanChi = cung.thangLuuThaiTueCanChi
+                break
+
+        # NOTE: If month not found or no Can Chi, skip
+        if cungThangXem is None or thangCanChi is None:
+            return self
+
+        # NOTE: Extract Can from Can Chi string (format: "Đ.Dần")
+        # Get the first character before the period
+        canVietTat = thangCanChi.split('.')[0]
+
+        # NOTE: Map abbreviated Can to Can ID
+        canID = None
+        for i, canData in enumerate(thienCan):
+            if canData['chuCaiDau'] == canVietTat:
+                canID = i
+                break
+
+        # NOTE: If Can not found in lookup table, skip
+        if canID is None or canID == 0:
+            return self
+
+        # NOTE: Find positions of major stars (Chính tinh) to apply Tứ Hóa
+        # Build a map of star names to their palace positions
+        viTriSaoChinhTinh = {}
+        chinhTinhNames = [
+            "Tử vi", "Liêm trinh", "Thiên đồng", "Vũ khúc", "Thái Dương",
+            "Thiên cơ", "Thiên phủ", "Thái âm", "Tham lang", "Cự môn",
+            "Thiên tướng", "Thiên lương", "Thất sát", "Phá quân",
+            "Văn xương", "Văn Khúc"
+        ]
+
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            for sao in cung.cungSao:
+                sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
+                if sao_ten in chinhTinhNames:
+                    viTriSaoChinhTinh[sao_ten] = cung.cungSo
+
+        # NOTE: Tứ Hóa table based on Thiên Can (same as in App.py)
+        tuHoaTable = {
+            1: {"loc": "Liêm trinh", "quyen": "Phá quân", "khoa": "Vũ khúc", "ky": "Thái Dương"},
+            2: {"loc": "Thiên cơ", "quyen": "Thiên lương", "khoa": "Tử vi", "ky": "Thái âm"},
+            3: {"loc": "Thiên đồng", "quyen": "Thiên cơ", "khoa": "Văn xương", "ky": "Liêm trinh"},
+            4: {"loc": "Thái âm", "quyen": "Thiên đồng", "khoa": "Thiên cơ", "ky": "Cự môn"},
+            5: {"loc": "Tham lang", "quyen": "Thái âm", "khoa": "Thái Dương", "ky": "Thiên cơ"},
+            6: {"loc": "Vũ khúc", "quyen": "Tham lang", "khoa": "Thiên lương", "ky": "Văn Khúc"},
+            7: {"loc": "Thái Dương", "quyen": "Vũ khúc", "khoa": "Thái âm", "ky": "Thiên đồng"},
+            8: {"loc": "Cự môn", "quyen": "Thái Dương", "khoa": "Văn Khúc", "ky": "Văn xương"},
+            9: {"loc": "Thiên lương", "quyen": "Tử vi", "khoa": "Thiên phủ", "ky": "Vũ khúc"},
+            10: {"loc": "Phá quân", "quyen": "Cự môn", "khoa": "Thái âm", "ky": "Tham lang"},
+        }
+
+        # NOTE: Get Tứ Hóa for this Can
+        if canID not in tuHoaTable:
+            return self
+
+        tuHoa = tuHoaTable[canID]
+
+        # NOTE: Place Tứ Hóa Lưu Tháng stars
+        if tuHoa["loc"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["loc"]], saoLuuHoaLocThang)
+
+        if tuHoa["quyen"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["quyen"]], saoLuuHoaQuyenThang)
+
+        if tuHoa["khoa"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["khoa"]], saoLuuHoaKhoaThang)
+
+        if tuHoa["ky"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["ky"]], saoLuuHoaKyThang)
+
+        return self
+
+    def nhapThangLuuThaiTue(self, thangSinh, gioSinh, canNamXem=None):
         """
         An tháng của năm xem theo phái Lưu Thái Tuế.
 
@@ -670,11 +782,12 @@ class diaBan(object):
         Args:
             thangSinh (int): Tháng sinh âm lịch (1-12)
             gioSinh (int): Giờ sinh (1-12)
+            canNamXem (int, optional): Can của năm xem (1-10) để tính Can Chi tháng
 
         Returns:
             self: DiaBan instance for chaining
         """
-        from core.calculations.AmDuong import dichCung
+        from core.calculations.AmDuong import dichCung, thienCan, diaChi
 
         # NOTE: Step 1 - Find palace with MỆNH.TV
         cungMenhTV = None
@@ -698,14 +811,287 @@ class diaBan(object):
         # We need to go (gioSinh - 1) steps forward
         cungThang1 = dichCung(cungThangSinh, gioSinh - 1)
 
+        # NOTE: Calculate Can of tháng Giêng (month 1) if canNamXem is provided
+        # Formula: canThangGieng = (canNamXem * 2 + 1) % 10, if 0 then 10
+        canThangGieng = None
+        if canNamXem is not None:
+            canThangGieng = (canNamXem * 2 + 1) % 10
+            if canThangGieng == 0:
+                canThangGieng = 10
+
         # NOTE: Step 5 & 6 - Place month 1-12 clockwise starting from cungThang1
-        # Store month numbers in a temporary attribute for display
+        # Store month numbers and Can Chi in temporary attributes for display
         for i in range(12):
             thangSo = i + 1  # Month 1-12
             targetCung = dichCung(cungThang1, i)  # Clockwise direction
+
             # Add month marker to the palace
             if not hasattr(self.thapNhiCung[targetCung], 'thangLuuThaiTue'):
                 self.thapNhiCung[targetCung].thangLuuThaiTue = thangSo
+
+            # NOTE: Add Can Chi of month if canNamXem is provided
+            if canThangGieng is not None:
+                # Can of each month increases sequentially from tháng Giêng
+                canThang = (canThangGieng + i - 1) % 10 + 1
+
+                # Chi of month: Tháng Giêng (1) = Dần (3), Tháng 2 = Mão (4), ...
+                # Formula: chiThang = (thangSo + 2) % 12, if 0 then 12
+                chiThang = (thangSo + 2) % 12
+                if chiThang == 0:
+                    chiThang = 12
+
+                # Get Can and Chi names
+                canThangVietTat = thienCan[canThang]['chuCaiDau']
+                chiThangTen = diaChi[chiThang]['tenChi']
+
+                # Store Can Chi as "Đ.Dậu" format (abbreviated Can + full Chi, no space)
+                self.thapNhiCung[targetCung].thangLuuThaiTueCanChi = f"{canThangVietTat}.{chiThangTen}"
+
+        return self
+
+    def nhapNgayThangXem(self, thangAmXem, soNgayTrongThang=30):
+        """
+        An các ngày trong tháng âm lịch vào 12 cung.
+
+        Logic:
+        1. Tìm cung có tháng xem âm lịch
+        2. Cung đó chứa ngày 1
+        3. Các ngày còn lại (2-30) được đặt thuận chiều kim đồng hồ
+        4. Mỗi cung sẽ chứa 2-3 ngày
+
+        Args:
+            thangAmXem (int): Tháng âm lịch cần xem (1-12)
+            soNgayTrongThang (int): Số ngày trong tháng (29 hoặc 30), mặc định 30
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        from core.calculations.AmDuong import dichCung
+
+        # NOTE: Find palace that has thangAmXem
+        cungThangXem = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            if hasattr(cung, 'thangLuuThaiTue') and cung.thangLuuThaiTue == thangAmXem:
+                cungThangXem = cung.cungSo
+                break
+
+        # NOTE: If month palace not found, return without placing days
+        if cungThangXem is None:
+            return self
+
+        # NOTE: Initialize ngayThang list for each palace
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            cung.ngayThang = []
+
+        # NOTE: Place days 1-30 clockwise starting from month palace
+        for ngay in range(1, soNgayTrongThang + 1):
+            # Calculate which palace this day goes to
+            # Day 1 = cungThangXem, day 2 = next palace (clockwise), etc.
+            targetCung = dichCung(cungThangXem, ngay - 1)
+
+            # Add day to palace's list
+            self.thapNhiCung[targetCung].ngayThang.append(ngay)
+
+        # NOTE: Format ngayThang as comma-separated string for each palace
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            if hasattr(cung, 'ngayThang') and len(cung.ngayThang) > 0:
+                cung.ngayThangStr = ','.join(map(str, cung.ngayThang))
+            else:
+                cung.ngayThangStr = None
+
+        return self
+
+    def nhapNgayLuuThaiTue(self, ngayAmXem, canNgayXem, chiNgayXem):
+        """
+        An Ngày vận (Ngày Lưu Thái Tuế) vào các cung.
+
+        Logic:
+        1. Tìm cung có ngày xem âm lịch (từ ngayThang list)
+        2. An ngày xem với Can Chi vào cung đó
+        3. Các ngày khác trong tháng được tính Can Chi và đặt vào các cung tương ứng
+
+        Args:
+            ngayAmXem (int): Ngày âm lịch xem (1-30)
+            canNgayXem (int): Can của ngày xem (1-10)
+            chiNgayXem (int): Chi của ngày xem (1-12)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        from core.calculations.AmDuong import thienCan, diaChi
+
+        # NOTE: Initialize ngayLuuThaiTue list for each palace
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            cung.ngayLuuThaiTue = []
+
+        # NOTE: Calculate Can Chi for each day in the month and place in corresponding palace
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+
+            # Check if this palace has days
+            if not hasattr(cung, 'ngayThang') or not cung.ngayThang:
+                continue
+
+            # For each day in this palace
+            for ngay in cung.ngayThang:
+                # NOTE: Calculate Can Chi for this day
+                # Can cycles every 10 days, Chi cycles every 12 days
+                # We know canNgayXem, chiNgayXem for ngayAmXem
+                # So we can calculate for other days by offset
+
+                offset = ngay - ngayAmXem
+
+                # Calculate Can for this day (cycles 1-10)
+                canNgay = (canNgayXem + offset - 1) % 10 + 1
+
+                # Calculate Chi for this day (cycles 1-12)
+                chiNgay = (chiNgayXem + offset - 1) % 12 + 1
+
+                # Get abbreviated Can and full Chi names
+                canNgayVietTat = thienCan[canNgay]['chuCaiDau']
+                chiNgayTen = diaChi[chiNgay]['tenChi']
+
+                # Store as "ngày (Can.Chi)" format, e.g., "15 (G.Tuất)"
+                ngayCanChi = f"{ngay} ({canNgayVietTat}.{chiNgayTen})"
+                cung.ngayLuuThaiTue.append(ngayCanChi)
+
+        # NOTE: Format ngayLuuThaiTue as comma-separated string for each palace
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            if hasattr(cung, 'ngayLuuThaiTue') and len(cung.ngayLuuThaiTue) > 0:
+                cung.ngayLuuThaiTueStr = ', '.join(cung.ngayLuuThaiTue)
+            else:
+                cung.ngayLuuThaiTueStr = None
+
+        return self
+
+    def nhapSaoTuHoaLuuNgay(self, ngayAmXem):
+        """
+        Tính và gán Tứ Hóa Lưu Ngày dựa trên Thiên Can của ngày vận trùng với ngày âm lịch xem.
+
+        Logic:
+        1. Tìm cung có ngayThang chứa ngayAmXem
+        2. Tìm Can Chi tương ứng với ngày đó từ ngayLuuThaiTue
+        3. Lấy Thiên Can từ Can Chi string
+        4. Dựa vào Thiên Can, tra bảng Tứ Hóa để tìm vị trí các sao Chính tinh
+        5. Đặt 4 sao L.Hóa lộc.N, L.Hóa quyền.N, L.Hóa khoa.N, L.Hóa kỵ.N
+           vào vị trí các sao Chính tinh tương ứng
+
+        Args:
+            ngayAmXem (int): Ngày âm lịch xem (1-30)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        # NOTE: Import star definitions
+        from core.calculations.Sao import (
+            saoLuuHoaLocNgay, saoLuuHoaQuyenNgay,
+            saoLuuHoaKhoaNgay, saoLuuHoaKyNgay
+        )
+        from core.calculations.AmDuong import thienCan
+
+        # NOTE: Validate ngayAmXem
+        if ngayAmXem is None or ngayAmXem < 1 or ngayAmXem > 30:
+            return self
+
+        # NOTE: Find palace and Can Chi for the day matching ngayAmXem
+        ngayCanChi = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+
+            # Check if this palace has the viewing day
+            if hasattr(cung, 'ngayThang') and ngayAmXem in cung.ngayThang:
+                # Find the Can Chi for this day from ngayLuuThaiTue list
+                if hasattr(cung, 'ngayLuuThaiTue'):
+                    for ngayStr in cung.ngayLuuThaiTue:
+                        # Format is "15 (G.Tuất)"
+                        if ngayStr.startswith(f"{ngayAmXem} ("):
+                            # Extract Can Chi part: "G.Tuất"
+                            start = ngayStr.find('(') + 1
+                            end = ngayStr.find(')')
+                            if start > 0 and end > start:
+                                ngayCanChi = ngayStr[start:end]
+                                break
+                break
+
+        # NOTE: If day not found or no Can Chi, skip
+        if ngayCanChi is None:
+            return self
+
+        # NOTE: Extract Can from Can Chi string (format: "G.Tuất")
+        canVietTat = ngayCanChi.split('.')[0]
+
+        # NOTE: Map abbreviated Can to Can ID
+        canID = None
+        for i, canData in enumerate(thienCan):
+            if canData['chuCaiDau'] == canVietTat:
+                canID = i
+                break
+
+        # NOTE: If Can not found in lookup table, skip
+        if canID is None or canID == 0:
+            return self
+
+        # NOTE: Find positions of major stars (Chính tinh) to apply Tứ Hóa
+        viTriSaoChinhTinh = {}
+        chinhTinhNames = [
+            "Tử vi", "Liêm trinh", "Thiên đồng", "Vũ khúc", "Thái Dương",
+            "Thiên cơ", "Thiên phủ", "Thái âm", "Tham lang", "Cự môn",
+            "Thiên tướng", "Thiên lương", "Thất sát", "Phá quân",
+            "Văn xương", "Văn Khúc"
+        ]
+
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            for sao in cung.cungSao:
+                sao_ten = sao.get('saoTen') if isinstance(sao, dict) else sao.saoTen
+                if sao_ten in chinhTinhNames:
+                    viTriSaoChinhTinh[sao_ten] = cung.cungSo
+
+        # NOTE: Tứ Hóa table based on Thiên Can
+        tuHoaTable = {
+            1: {"loc": "Liêm trinh", "quyen": "Phá quân", "khoa": "Vũ khúc", "ky": "Thái Dương"},
+            2: {"loc": "Thiên cơ", "quyen": "Thiên lương", "khoa": "Tử vi", "ky": "Thái âm"},
+            3: {"loc": "Thiên đồng", "quyen": "Thiên cơ", "khoa": "Văn xương", "ky": "Liêm trinh"},
+            4: {"loc": "Thái âm", "quyen": "Thiên đồng", "khoa": "Thiên cơ", "ky": "Cự môn"},
+            5: {"loc": "Tham lang", "quyen": "Thái âm", "khoa": "Thái Dương", "ky": "Thiên cơ"},
+            6: {"loc": "Vũ khúc", "quyen": "Tham lang", "khoa": "Thiên lương", "ky": "Văn Khúc"},
+            7: {"loc": "Thái Dương", "quyen": "Vũ khúc", "khoa": "Thái âm", "ky": "Thiên đồng"},
+            8: {"loc": "Cự môn", "quyen": "Thái Dương", "khoa": "Văn Khúc", "ky": "Văn xương"},
+            9: {"loc": "Thiên lương", "quyen": "Tử vi", "khoa": "Thiên phủ", "ky": "Vũ khúc"},
+            10: {"loc": "Phá quân", "quyen": "Cự môn", "khoa": "Thái âm", "ky": "Tham lang"},
+        }
+
+        # NOTE: Get Tứ Hóa for this Can
+        if canID not in tuHoaTable:
+            return self
+
+        tuHoa = tuHoaTable[canID]
+
+        # NOTE: Place Tứ Hóa Lưu Ngày stars
+        if tuHoa["loc"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["loc"]], saoLuuHoaLocNgay)
+
+        if tuHoa["quyen"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["quyen"]], saoLuuHoaQuyenNgay)
+
+        if tuHoa["khoa"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["khoa"]], saoLuuHoaKhoaNgay)
+
+        if tuHoa["ky"] in viTriSaoChinhTinh:
+            self.nhapSao(viTriSaoChinhTinh[tuHoa["ky"]], saoLuuHoaKyNgay)
 
         return self
 

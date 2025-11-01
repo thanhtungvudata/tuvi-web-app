@@ -27,7 +27,7 @@ thienCan = [
     },
     {
         "id": 2,
-        "chuCaiDau": "A",
+        "chuCaiDau": "Ấ",
         "tenCan": "Ất",
         "nguHanh": "M",
         "nguHanhID": 2,
@@ -45,7 +45,7 @@ thienCan = [
     },
     {
         "id": 4,
-        "chuCaiDau": "D",
+        "chuCaiDau": "Đ",
         "tenCan": "Đinh",
         "nguHanh": "H",
         "nguHanhID": 4,

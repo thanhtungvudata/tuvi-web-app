@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from core.calculations.DiaBan import diaBan
 from core.calculations.ThienBan import lapThienBan
-from core.calculations.AmDuong import thienCan, diaChi
+from core.calculations.AmDuong import thienCan, diaChi, ngayThangNam, canChiNgay
 
 from apps.tuvi.utils import lapDiaBan
 from apps.tuvi.models import SavedLaSo, Folder
@@ -26,6 +26,9 @@ def api(request):
         timeZone = int(request.GET.get('muigio', 7))
         duongLich = False if request.GET.get('amlich') == 'on' else True
         namXem = int(request.GET.get('namxem') or now.year)
+        ngayXem = int(request.GET.get('ngayxem') or now.day)
+        thangXem = int(request.GET.get('thangxem') or now.month)
+        amlichXem = request.GET.get('amlichxem') == 'on'
 
         print("="*80)
         print(f"DEBUG API - ALL PARAMS: {dict(request.GET)}")
@@ -76,16 +79,58 @@ def api(request):
         # NOTE: Calculate and place Tứ Hóa Lưu Tiểu Vận based on Can of namXem
         _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
 
+        # NOTE: Convert thangXem to lunar calendar if needed
+        if amlichXem:
+            # Input is already lunar calendar
+            ngayAmXem = ngayXem
+            thangAmXem = thangXem
+        else:
+            # Input is solar calendar, convert to lunar
+            ngayAm, thangAm, namAm, thangNhuan = ngayThangNam(
+                ngayXem, thangXem, namXem, True, timeZone
+            )
+            ngayAmXem = ngayAm
+            thangAmXem = thangAm
+
+        # NOTE: Calculate Can Chi for ngayXem
+        canNgayXem, chiNgayXem = canChiNgay(
+            ngayXem, thangXem, namXem, not amlichXem, timeZone
+        )
+        canNgayXemTen = thienCan[canNgayXem]['tenCan']
+        canNgayXemChu = thienCan[canNgayXem]['chuCaiDau']
+        chiNgayXemTen = diaChi[chiNgayXem]['tenChi']
+        ngayXemCanChi = f"{canNgayXemChu}.{chiNgayXemTen}"
+
         # NOTE: An tháng của năm xem theo phái Lưu Thái Tuế
-        # IMPORTANT: Use thienBan.thangAm (lunar month) not input thangSinh (may be solar)
-        _ = db.nhapThangLuuThaiTue(thienBan.thangAm, gioSinh)
+        # IMPORTANT: Use thienBan.thangAm (birth month) not thangAmXem
+        # thangAmXem is only used for highlighting in the UI
+        _ = db.nhapThangLuuThaiTue(thienBan.thangAm, gioSinh, canNamXem)
+
+        # NOTE: An ngày của tháng xem vào các cung
+        # Use thangAmXem to place days 1-30 in palaces
+        _ = db.nhapNgayThangXem(thangAmXem)
+
+        # NOTE: An Ngày vận (Ngày Lưu Thái Tuế) với Can Chi
+        _ = db.nhapNgayLuuThaiTue(ngayAmXem, canNgayXem, chiNgayXem)
+
+        # NOTE: Calculate and place Tứ Hóa Lưu Tháng based on Can of month matching thangAmXem
+        _ = db.nhapSaoTuHoaLuuThang(thangAmXem)
+
+        # NOTE: Calculate and place Tứ Hóa Lưu Ngày based on Can of day matching ngayAmXem
+        _ = db.nhapSaoTuHoaLuuNgay(ngayAmXem)
 
         laso = {
             'thienBan': thienBan,
             'thapNhiCung': db.thapNhiCung,
             'namXem': namXem,
             'tuoiAmLich': tuoiAmLich,
-            'namXemCanChi': namXemCanChi
+            'namXemCanChi': namXemCanChi,
+            'ngayAmXem': ngayAmXem,
+            'thangAmXem': thangAmXem,
+            'ngayXemCanChi': ngayXemCanChi,
+            'ngayXem': ngayXem,
+            'thangXem': thangXem,
+            'amlichXem': amlichXem
         }
 
         # NOTE: Custom JSON serializer that handles both objects and dicts
@@ -156,6 +201,8 @@ def lasotuvi_new_result(request):
     laso_id = request.GET.get('laso_id')
     now = datetime.datetime.now()
     current_year = now.year
+    current_month = now.month
+    current_day = now.day
     year_range = list(range(1900, 2101))
 
     if laso_id:
@@ -171,7 +218,10 @@ def lasotuvi_new_result(request):
                 'giosinh': str(laso.giosinh),
                 'muigio': str(laso.muigio),
                 'amlich': 'on' if laso.amlich else 'off',
+                'ngayxem': current_day,
+                'thangxem': current_month,
                 'namxem': current_year,
+                'amlichxem': 'off',
                 'year_range': year_range,
             }
         except SavedLaSo.DoesNotExist:
@@ -185,7 +235,10 @@ def lasotuvi_new_result(request):
                 'giosinh': '1',
                 'muigio': '7',
                 'amlich': 'off',
+                'ngayxem': current_day,
+                'thangxem': current_month,
                 'namxem': current_year,
+                'amlichxem': 'off',
                 'year_range': year_range,
             }
     else:
@@ -199,7 +252,10 @@ def lasotuvi_new_result(request):
             'giosinh': request.GET.get('giosinh', '1'),
             'muigio': request.GET.get('muigio', '7'),
             'amlich': request.GET.get('amlich', 'off'),
+            'ngayxem': int(request.GET.get('ngayxem', str(current_day))),
+            'thangxem': int(request.GET.get('thangxem', str(current_month))),
             'namxem': int(request.GET.get('namxem', str(current_year))),
+            'amlichxem': request.GET.get('amlichxem', 'off'),
             'year_range': year_range,
         }
     return render(request, 'tuvi/result.html', context)
@@ -229,6 +285,11 @@ def save_laso(request):
         amlich = data.get('amlich') == 'on'
         muigio = int(data.get('muigio')) if data.get('muigio') else 7
         namxem = int(data.get('namxem')) if data.get('namxem') else None
+        # NOTE: Use current date/month as default for ngayxem/thangxem if not provided
+        now = datetime.datetime.now()
+        ngayxem = int(data.get('ngayxem')) if data.get('ngayxem') else now.day
+        thangxem = int(data.get('thangxem')) if data.get('thangxem') else now.month
+        amlichxem = data.get('amlichxem') == 'on'
         folder_id = data.get('folder_id')
         new_folder_name = data.get('new_folder_name')
 
@@ -266,12 +327,37 @@ def save_laso(request):
 
         # NOTE: Calculate Can Chi for namxem if provided
         namXemCanChi = None
-        if namxem:
+        ngayAmXem = None
+        thangAmXem = None
+        ngayXemCanChi = None
+        if namxem and thangxem and ngayxem:
+            # Convert thangxem to lunar calendar if needed
+            if amlichxem:
+                # Input is already lunar calendar
+                ngayAmXem = ngayxem
+                thangAmXem = thangxem
+            else:
+                # Input is solar calendar, convert to lunar
+                ngayAm, thangAm, namAm, thangNhuan = ngayThangNam(
+                    ngayxem, thangxem, namxem, True, muigio
+                )
+                ngayAmXem = ngayAm
+                thangAmXem = thangAm
+
             canNamXem = (namxem + 6) % 10 + 1
             chiNamXem = (namxem + 8) % 12 + 1
             canNamXemTen = thienCan[canNamXem]['tenCan']
             chiNamXemTen = diaChi[chiNamXem]['tenChi']
             namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+
+            # NOTE: Calculate Can Chi for ngayxem
+            canNgayXem, chiNgayXem = canChiNgay(
+                ngayxem, thangxem, namxem, not amlichxem, muigio
+            )
+            canNgayXemTen = thienCan[canNgayXem]['tenCan']
+            canNgayXemChu = thienCan[canNgayXem]['chuCaiDau']
+            chiNgayXemTen = diaChi[chiNgayXem]['tenChi']
+            ngayXemCanChi = f"{canNgayXemChu}.{chiNgayXemTen}"
 
             # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namxem
             _ = db.nhapCungTieuVan(chiNamXem)
@@ -286,8 +372,22 @@ def save_laso(request):
             _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
 
             # NOTE: An tháng của năm xem theo phái Lưu Thái Tuế
-            # IMPORTANT: Use thienBan.thangAm (lunar month) not input thangsinh (may be solar)
-            _ = db.nhapThangLuuThaiTue(thienBan.thangAm, giosinh)
+            # IMPORTANT: Use thienBan.thangAm (birth month) not thangAmXem
+            # thangAmXem is only used for highlighting in the UI
+            _ = db.nhapThangLuuThaiTue(thienBan.thangAm, giosinh, canNamXem)
+
+            # NOTE: An ngày của tháng xem vào các cung
+            # Use thangAmXem to place days 1-30 in palaces
+            _ = db.nhapNgayThangXem(thangAmXem)
+
+            # NOTE: An Ngày vận (Ngày Lưu Thái Tuế) với Can Chi
+            _ = db.nhapNgayLuuThaiTue(ngayAmXem, canNgayXem, chiNgayXem)
+
+            # NOTE: Calculate and place Tứ Hóa Lưu Tháng based on Can of month matching thangAmXem
+            _ = db.nhapSaoTuHoaLuuThang(thangAmXem)
+
+            # NOTE: Calculate and place Tứ Hóa Lưu Ngày based on Can of day matching ngayAmXem
+            _ = db.nhapSaoTuHoaLuuNgay(ngayAmXem)
 
         # Tạo chart_data JSON
         chart_data = {
@@ -295,7 +395,13 @@ def save_laso(request):
             'thapNhiCung': [cung.__dict__ for cung in db.thapNhiCung],
             'namXem': namxem,
             'tuoiAmLich': tuoiAmLich,
-            'namXemCanChi': namXemCanChi
+            'namXemCanChi': namXemCanChi,
+            'ngayAmXem': ngayAmXem,
+            'thangAmXem': thangAmXem,
+            'ngayXemCanChi': ngayXemCanChi,
+            'ngayXem': ngayxem,
+            'thangXem': thangxem,
+            'amlichXem': amlichxem
         }
 
         # Lưu vào database
@@ -434,6 +540,11 @@ def update_laso(request):
         laso.amlich = data.get('amlich', 'off') == 'on'
         laso.muigio = int(data.get('muigio', 7))
         laso.namxem = int(data.get('namxem')) if data.get('namxem') else None
+        # NOTE: Use current date/month as default for ngayxem/thangxem if not provided
+        now = datetime.datetime.now()
+        ngayxem = int(data.get('ngayxem')) if data.get('ngayxem') else now.day
+        thangxem = int(data.get('thangxem')) if data.get('thangxem') else now.month
+        amlichxem = data.get('amlichxem') == 'on'
 
         # Tính toán lại chart_data với thông tin mới
         duongLich = not laso.amlich
@@ -457,12 +568,37 @@ def update_laso(request):
 
         # NOTE: Calculate Can Chi for namxem if provided
         namXemCanChi = None
-        if laso.namxem:
+        ngayAmXem = None
+        thangAmXem = None
+        ngayXemCanChi = None
+        if laso.namxem and thangxem and ngayxem:
+            # Convert thangxem to lunar calendar if needed
+            if amlichxem:
+                # Input is already lunar calendar
+                ngayAmXem = ngayxem
+                thangAmXem = thangxem
+            else:
+                # Input is solar calendar, convert to lunar
+                ngayAm, thangAm, namAm, thangNhuan = ngayThangNam(
+                    ngayxem, thangxem, laso.namxem, True, laso.muigio
+                )
+                ngayAmXem = ngayAm
+                thangAmXem = thangAm
+
             canNamXem = (laso.namxem + 6) % 10 + 1
             chiNamXem = (laso.namxem + 8) % 12 + 1
             canNamXemTen = thienCan[canNamXem]['tenCan']
             chiNamXemTen = diaChi[chiNamXem]['tenChi']
             namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+
+            # NOTE: Calculate Can Chi for ngayxem
+            canNgayXem, chiNgayXem = canChiNgay(
+                ngayxem, thangxem, laso.namxem, not amlichxem, laso.muigio
+            )
+            canNgayXemTen = thienCan[canNgayXem]['tenCan']
+            canNgayXemChu = thienCan[canNgayXem]['chuCaiDau']
+            chiNgayXemTen = diaChi[chiNgayXem]['tenChi']
+            ngayXemCanChi = f"{canNgayXemChu}.{chiNgayXemTen}"
 
             # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namxem
             _ = db.nhapCungTieuVan(chiNamXem)
@@ -477,8 +613,22 @@ def update_laso(request):
             _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
 
             # NOTE: An tháng của năm xem theo phái Lưu Thái Tuế
-            # IMPORTANT: Use thienBan.thangAm (lunar month) not input thangsinh (may be solar)
-            _ = db.nhapThangLuuThaiTue(thienBan.thangAm, laso.giosinh)
+            # IMPORTANT: Use thienBan.thangAm (birth month) not thangAmXem
+            # thangAmXem is only used for highlighting in the UI
+            _ = db.nhapThangLuuThaiTue(thienBan.thangAm, laso.giosinh, canNamXem)
+
+            # NOTE: An ngày của tháng xem vào các cung
+            # Use thangAmXem to place days 1-30 in palaces
+            _ = db.nhapNgayThangXem(thangAmXem)
+
+            # NOTE: An Ngày vận (Ngày Lưu Thái Tuế) với Can Chi
+            _ = db.nhapNgayLuuThaiTue(ngayAmXem, canNgayXem, chiNgayXem)
+
+            # NOTE: Calculate and place Tứ Hóa Lưu Tháng based on Can of month matching thangAmXem
+            _ = db.nhapSaoTuHoaLuuThang(thangAmXem)
+
+            # NOTE: Calculate and place Tứ Hóa Lưu Ngày based on Can of day matching ngayAmXem
+            _ = db.nhapSaoTuHoaLuuNgay(ngayAmXem)
 
         # Tạo chart_data JSON
         laso.chart_data = {
@@ -486,7 +636,13 @@ def update_laso(request):
             'thapNhiCung': [cung.__dict__ for cung in db.thapNhiCung],
             'namXem': laso.namxem,
             'tuoiAmLich': tuoiAmLich,
-            'namXemCanChi': namXemCanChi
+            'namXemCanChi': namXemCanChi,
+            'ngayAmXem': ngayAmXem,
+            'thangAmXem': thangAmXem,
+            'ngayXemCanChi': ngayXemCanChi,
+            'ngayXem': ngayxem,
+            'thangXem': thangxem,
+            'amlichXem': amlichxem
         }
 
         laso.save()

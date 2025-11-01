@@ -119,6 +119,18 @@ saoLuuHoaLocTieuVan = Sao(120, "L.Hóa lộc.TV", "M", 3, "Lưu tinh")
 saoLuuHoaQuyenTieuVan = Sao(121, "L.Hóa quyền.TV", "M", 4, "Lưu tinh")
 saoLuuHoaKhoaTieuVan = Sao(122, "L.Hóa khoa.TV", "M", 5, "Lưu tinh")
 saoLuuHoaKyTieuVan = Sao(123, "L.Hóa kỵ.TV", "T", 13, "Lưu tinh")
+
+# Tứ Hóa Lưu Tháng
+saoLuuHoaLocThang = Sao(124, "L.Hóa lộc.T", "M", 3, "Lưu tinh")
+saoLuuHoaQuyenThang = Sao(125, "L.Hóa quyền.T", "M", 4, "Lưu tinh")
+saoLuuHoaKhoaThang = Sao(126, "L.Hóa khoa.T", "M", 5, "Lưu tinh")
+saoLuuHoaKyThang = Sao(127, "L.Hóa kỵ.T", "T", 13, "Lưu tinh")
+
+# Tứ Hóa Lưu Ngày
+saoLuuHoaLocNgay = Sao(128, "L.Hóa lộc.N", "M", 3, "Lưu tinh")
+saoLuuHoaQuyenNgay = Sao(129, "L.Hóa quyền.N", "M", 4, "Lưu tinh")
+saoLuuHoaKhoaNgay = Sao(130, "L.Hóa khoa.N", "M", 5, "Lưu tinh")
+saoLuuHoaKyNgay = Sao(131, "L.Hóa kỵ.N", "T", 13, "Lưu tinh")
 saoLucSi = Sao(28, "Lực sĩ", "H", 2)
 saoThanhLong = Sao(29, "Thanh long", "T", 5)
 saoTieuHao = Sao(30, "Tiểu hao", "H", 12)

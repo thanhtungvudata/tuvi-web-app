@@ -48,7 +48,7 @@
                             <div class="edit-form-group">
                                 <div class="date-inputs-with-labels">
                                     <div class="date-field">
-                                        <label class="date-label">Ngày</label>
+                                        <label class="date-label">Ngày sinh</label>
                                         <select name="ngaysinh" class="date-select">
                                             {% for i in "x"|rjust:"31" %}
                                             <option value="{{ forloop.counter }}" {% if ngaysinh|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
@@ -56,7 +56,7 @@
                                         </select>
                                     </div>
                                     <div class="date-field">
-                                        <label class="date-label">Tháng</label>
+                                        <label class="date-label">Tháng sinh</label>
                                         <select name="thangsinh" class="date-select">
                                             {% for i in "x"|rjust:"12" %}
                                             <option value="{{ forloop.counter }}" {% if thangsinh|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
@@ -64,7 +64,7 @@
                                         </select>
                                     </div>
                                     <div class="date-field">
-                                        <label class="date-label">Năm</label>
+                                        <label class="date-label">Năm sinh</label>
                                         <input type="text" name="namsinh" value="{{ namsinh }}" placeholder="Năm" class="year-input">
                                     </div>
                                 </div>
@@ -109,12 +109,35 @@
                             </div>
 
                             <div class="edit-form-group">
-                                <label>Năm xem:</label>
-                                <select name="namxem">
-                                    {% for year in year_range %}
-                                        <option value="{{ year }}" {% if year == namxem %}selected{% endif %}>{{ year }}</option>
-                                    {% endfor %}
-                                </select>
+                                <div class="date-inputs-with-labels">
+                                    <div class="date-field">
+                                        <label class="date-label">Ngày xem</label>
+                                        <select name="ngayxem" class="date-select">
+                                            {% for i in "x"|rjust:"31" %}
+                                            <option value="{{ forloop.counter }}" {% if ngayxem|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="date-field">
+                                        <label class="date-label">Tháng xem</label>
+                                        <select name="thangxem" class="date-select">
+                                            {% for i in "x"|rjust:"12" %}
+                                            <option value="{{ forloop.counter }}" {% if thangxem|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="date-field">
+                                        <label class="date-label">Năm xem</label>
+                                        <select name="namxem" class="year-select">
+                                            {% for year in year_range %}
+                                                <option value="{{ year }}" {% if year == namxem %}selected{% endif %}>{{ year }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="amlichxem" name="amlichxem" {% if amlichxem == 'on' %}checked{% endif %}> Âm lịch
+                                </label>
                             </div>
 
                             <!-- Hidden input to preserve laso_id when updating -->
@@ -159,6 +182,16 @@
                         </label>
                         <br>
                         <label class="option-label">
+                            <input type="checkbox" id="hienhanthang">
+                            <span>Tháng Vận</span>
+                        </label>
+                        <br>
+                        <label class="option-label">
+                            <input type="checkbox" id="hienngayvan">
+                            <span>Ngày Vận</span>
+                        </label>
+                        <br>
+                        <label class="option-label">
                             <input type="checkbox" id="hiensaoluudaivan">
                             <span>Sao lưu đại vận</span>
                         </label>
@@ -166,6 +199,16 @@
                         <label class="option-label">
                             <input type="checkbox" id="hiensaoluutieuan">
                             <span>Sao lưu tiểu vận</span>
+                        </label>
+                        <br>
+                        <label class="option-label">
+                            <input type="checkbox" id="hiensaoluunguyetvan">
+                            <span>Sao lưu tháng vận</span>
+                        </label>
+                        <br>
+                        <label class="option-label">
+                            <input type="checkbox" id="hiensaoluunhatvan">
+                            <span>Sao lưu ngày vận</span>
                         </label>
                     </div>
                 </div>
@@ -302,13 +345,52 @@
                             document.querySelector('select[name="gioitinh"]').value = urlParams.get('gioitinh') || laso.gioitinh || '';
                             document.querySelector('input[name="amlich"]').checked = urlParams.get('amlich') === 'on' ? true : (laso.amlich || false);
                             document.querySelector('select[name="muigio"]').value = urlParams.get('muigio') || laso.muigio || 7;
-                            // NOTE: Ưu tiên namxem từ URL params (khi user thay đổi và click "Cập nhật lá số")
+                            // NOTE: Ưu tiên viewing date từ URL params (khi user thay đổi và click "Cập nhật lá số")
+                            const ngayxemSelect = document.querySelector('select[name="ngayxem"]');
+                            const thangxemSelect = document.querySelector('select[name="thangxem"]');
                             const namxemSelect = document.querySelector('select[name="namxem"]');
-                            const namxemFromUrl = urlParams.get('namxem');
+
+                            if (ngayxemSelect) {
+                                const ngayxemFromUrl = urlParams.get('ngayxem');
+                                const ngayxemFromChart = laso.chart_data?.ngayXem;
+                                ngayxemSelect.value = ngayxemFromUrl || ngayxemFromChart || '';
+                            }
+
+                            if (thangxemSelect) {
+                                const thangxemFromUrl = urlParams.get('thangxem');
+                                const thangxemFromChart = laso.chart_data?.thangXem;
+                                thangxemSelect.value = thangxemFromUrl || thangxemFromChart || '';
+                            }
+
                             if (namxemSelect) {
+                                const namxemFromUrl = urlParams.get('namxem');
                                 // NOTE: namxem stored in chart_data.namXem, not laso.namxem
                                 const namxemFromChart = laso.chart_data?.namXem;
                                 namxemSelect.value = namxemFromUrl || namxemFromChart || '';
+                            }
+
+                            // Populate amlichxem checkbox - prioritize current viewing state, then chart_data
+                            const amlichxemCheckbox = document.getElementById('amlichxem');
+                            if (amlichxemCheckbox) {
+                                const amlichxemFromUrl = urlParams.get('amlichxem');
+                                const amlichxemFromChart = laso.chart_data?.amlichXem;
+
+                                // Check if we're in "viewing mode" (user just clicked "Xem lá số")
+                                // by checking if form params exist in URL
+                                const isViewingMode = urlParams.has('hoten') || urlParams.has('ngayxem');
+
+                                if (isViewingMode) {
+                                    // In viewing mode: amlichxem=on means checked, absence means unchecked
+                                    amlichxemCheckbox.checked = (amlichxemFromUrl === 'on');
+                                    console.log('DEBUG: Setting amlichxem from viewing mode (URL presence):', amlichxemFromUrl);
+                                } else if (amlichxemFromChart !== undefined) {
+                                    // Not in viewing mode: use saved chart_data
+                                    amlichxemCheckbox.checked = amlichxemFromChart;
+                                    console.log('DEBUG: Setting amlichxem from chart_data:', amlichxemFromChart);
+                                }
+
+                                // Save to localStorage so it persists
+                                localStorage.setItem('checkbox_amlichxem', String(amlichxemCheckbox.checked));
                             }
 
                             // Cập nhật trạng thái yêu thích cho nút
@@ -374,12 +456,19 @@
             }
 
             // NOTE: Restore checkbox states from localStorage and re-render if needed
-            const checkboxIds = ['hienphusao', 'hiencungdaivan', 'hiencungtieuan', 'hiensaoluudaivan', 'hiensaoluutieuan'];
+            // IMPORTANT: Skip amlichxem if we have a saved laso (chart_data has the correct value)
+            const checkboxIds = ['hienphusao', 'hiencungdaivan', 'hiencungtieuan', 'hienhanthang', 'hienngayvan', 'hiensaoluudaivan', 'hiensaoluutieuan', 'hiensaoluunguyetvan', 'hiensaoluunhatvan', 'amlichxem'];
             let needsRerender = false;
+            const hasLasoId = new URLSearchParams(window.location.search).get('laso_id');
 
             checkboxIds.forEach(id => {
                 const checkbox = document.getElementById(id);
                 if (checkbox) {
+                    // Skip amlichxem if we have a saved laso - it's already set from chart_data
+                    if (id === 'amlichxem' && hasLasoId) {
+                        return;
+                    }
+
                     const savedState = localStorage.getItem(`checkbox_${id}`);
                     if (savedState !== null) {
                         const shouldBeChecked = savedState === 'true';
@@ -488,7 +577,10 @@
             const gioitinhSelect = document.querySelector('select[name="gioitinh"]');
             const amlichCheckbox = document.querySelector('input[name="amlich"]');
             const muigioSelect = document.querySelector('select[name="muigio"]');
+            const ngayxemSelect = document.querySelector('select[name="ngayxem"]');
+            const thangxemSelect = document.querySelector('select[name="thangxem"]');
             const namxemSelect = document.querySelector('select[name="namxem"]');
+            const amlichxemCheckbox = document.getElementById('amlichxem');
 
             const updateData = {
                 laso_id: currentLaso.id,
@@ -500,8 +592,15 @@
                 gioitinh: gioitinhSelect?.value || 'nam',
                 amlich: amlichCheckbox?.checked ? 'on' : 'off',
                 muigio: muigioSelect?.value || '7',
-                namxem: namxemSelect?.value || null
+                ngayxem: ngayxemSelect?.value || '1',
+                thangxem: thangxemSelect?.value || '1',
+                namxem: namxemSelect?.value || null,
+                amlichxem: amlichxemCheckbox?.checked ? 'on' : 'off'
             };
+
+            console.log('DEBUG handleUpdateLaso - amlichxemCheckbox:', amlichxemCheckbox);
+            console.log('DEBUG handleUpdateLaso - amlichxemCheckbox.checked:', amlichxemCheckbox?.checked);
+            console.log('DEBUG handleUpdateLaso - updateData:', updateData);
 
             // Gửi request cập nhật
             fetch('/api/update-laso/', {
@@ -770,6 +869,6 @@
             });
         }
     </script>
-    <script src="{% static 'tuvi/client.js' %}?v=999"></script>
+    <script src="{% static 'tuvi/client.js' %}?v=1003"></script>
 </body>
 </html>

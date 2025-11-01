@@ -4,6 +4,11 @@
     padding: 0;
 }
 
+/* NOTE: Bold text utility class */
+.bold {
+    font-weight: bold !important;
+}
+
 body {
     font-family: 'Open Sans', sans-serif;
     font-weight: 600;
@@ -738,6 +743,18 @@ body {
     position: absolute;
     bottom: 5px;
     right: 5px;
+    font-size: 9px;
+    font-weight: normal;
+    color: #000000;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+/* Ngày tháng - góc trái dưới, cùng dòng với Vòng Trường Sinh */
+.ngay-thang {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
     font-size: 9px;
     font-weight: normal;
     color: #000000;
