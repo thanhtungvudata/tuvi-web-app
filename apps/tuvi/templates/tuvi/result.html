@@ -80,7 +80,11 @@
                                     </div>
                                     <div class="date-field">
                                         <label class="date-label">Năm sinh</label>
-                                        <input type="text" name="namsinh" value="{{ namsinh }}" placeholder="Năm" class="year-input">
+                                        <select name="namsinh" class="year-select">
+                                            {% for year in birth_year_range %}
+                                                <option value="{{ year }}" {% if year == namsinh|default:1990 %}selected{% endif %}>{{ year }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                 </div>
                                 <label class="checkbox-label">
