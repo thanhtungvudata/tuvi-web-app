@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from core.calculations.DiaBan import diaBan
 from core.calculations.ThienBan import lapThienBan
-from core.calculations.AmDuong import thienCan, diaChi, ngayThangNam, canChiNgay
+from core.calculations.AmDuong import thienCan, diaChi, ngayThangNam, canChiNgay, canChiThang, jdFromDate
 
 from apps.tuvi.utils import lapDiaBan
 from apps.tuvi.models import SavedLaSo, Folder
@@ -63,13 +63,32 @@ def api(request):
         # NOTE: Calculate and place Tứ Hóa Lưu Đại Vận based on Can of Mệnh.ĐV palace
         _ = db.nhapSaoTuHoaLuuDaiVan()
 
-        # NOTE: Calculate Can Chi for namXem (năm âm lịch tương ứng với năm dương lịch)
-        # Năm dương lịch thường tương ứng với năm âm lịch cùng số (ví dụ: 2025 DL = Ất Tị 2025 ÂL)
-        canNamXem = (namXem + 6) % 10 + 1
-        chiNamXem = (namXem + 8) % 12 + 1
+        # NOTE: Convert ngayXem/thangXem to lunar calendar FIRST (needed for accurate Can Chi)
+        if amlichXem:
+            # Input is already lunar calendar
+            ngayAmXem = ngayXem
+            thangAmXem = thangXem
+            namAmXem = namXem  # Keep the same lunar year
+        else:
+            # Input is solar calendar, convert to lunar
+            # IMPORTANT: Use the full solar date (ngayXem, thangXem, namXem) to get accurate lunar month
+            ngayAm, thangAm, namAm, thangNhuan = ngayThangNam(
+                ngayXem, thangXem, namXem, duongLich=True, timeZone=timeZone
+            )
+            ngayAmXem = ngayAm
+            thangAmXem = thangAm
+            namAmXem = namAm  # Use converted lunar year
+
+        # NOTE: Calculate Can Chi for namXem (using năm âm lịch for accurate month Can Chi)
+        # IMPORTANT: Use namAmXem (lunar year) not namXem (solar year) for month Can Chi calculation
+        canNamXem = (namXem + 6) % 10 + 1  # Can of solar year (for display)
+        chiNamXem = (namXem + 8) % 12 + 1  # Chi of solar year (for display)
         canNamXemTen = thienCan[canNamXem]['tenCan']
         chiNamXemTen = diaChi[chiNamXem]['tenChi']
         namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+
+        # Calculate Can of lunar year (for month Can Chi calculation)
+        canNamAmXem = (namAmXem + 6) % 10 + 1
 
         # NOTE: Calculate and assign Tiểu Vận palaces based on địa chi of namXem
         _ = db.nhapCungTieuVan(chiNamXem)
@@ -83,19 +102,6 @@ def api(request):
         # NOTE: Calculate and place Tứ Hóa Lưu Tiểu Vận based on Can of namXem
         _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
 
-        # NOTE: Convert thangXem to lunar calendar if needed
-        if amlichXem:
-            # Input is already lunar calendar
-            ngayAmXem = ngayXem
-            thangAmXem = thangXem
-        else:
-            # Input is solar calendar, convert to lunar
-            ngayAm, thangAm, namAm, thangNhuan = ngayThangNam(
-                ngayXem, thangXem, namXem, True, timeZone
-            )
-            ngayAmXem = ngayAm
-            thangAmXem = thangAm
-
         # NOTE: Calculate Can Chi for ngayXem
         canNgayXem, chiNgayXem = canChiNgay(
             ngayXem, thangXem, namXem, not amlichXem, timeZone
@@ -106,9 +112,9 @@ def api(request):
         ngayXemCanChi = f"{canNgayXemChu}.{chiNgayXemTen}"
 
         # NOTE: An tháng của năm xem theo phái Lưu Thái Tuế
-        # IMPORTANT: Use thienBan.thangAm (birth month) not thangAmXem
-        # thangAmXem is only used for highlighting in the UI
-        _ = db.nhapThangLuuThaiTue(thienBan.thangAm, gioSinh, canNamXem)
+        # IMPORTANT: Use thienBan.thangAm (birth month) and canNamAmXem (Can of lunar year)
+        # canNamAmXem ensures the month Can Chi matches the lunar year of viewing month
+        _ = db.nhapThangLuuThaiTue(thienBan.thangAm, gioSinh, canNamAmXem)
 
         # NOTE: An ngày của tháng xem vào các cung
         # Use thangAmXem to place days 1-30 in palaces
@@ -137,6 +143,49 @@ def api(request):
         # Pass gioXem to mark the matching hour for bold display
         _ = db.nhapGioCanChi(ngayAmXem, ngayDuongXem, thangDuongXem, namDuongXem, gioXem)
 
+        # NOTE: Calculate display strings for Thiên bàn
+        # Month display: "thangXem (thangAmXem) - Can Chi"
+        # IMPORTANT: Reuse Can Chi from the bold month marker (thangLuuThaiTue)
+        # The bold month has Can Chi calculated correctly, just extract it
+        thangCanChi = None
+        for cung in db.thapNhiCung:
+            if hasattr(cung, 'thangLuuThaiTue') and cung.thangLuuThaiTue == thangAmXem:
+                if hasattr(cung, 'thangLuuThaiTueCanChi'):
+                    thangCanChi = cung.thangLuuThaiTueCanChi
+                break
+
+        # Expand abbreviated Can to full name for display
+        if thangCanChi:
+            canVietTat = thangCanChi.split('.')[0]
+            chiThangTen = thangCanChi.split('.')[1]
+            # Find full Can name
+            canThangTen = None
+            for canData in thienCan:
+                if canData['chuCaiDau'] == canVietTat:
+                    canThangTen = canData['tenCan']
+                    break
+            thangXemDisplay = f"{thangXem} ({thangAmXem}) - {canThangTen} {chiThangTen}"
+        else:
+            thangXemDisplay = f"{thangXem} ({thangAmXem})"
+
+        # Day display: "ngayXem (ngayAmXem) - Can Chi" (using already calculated canNgayXem, chiNgayXem)
+        ngayXemDisplay = f"{ngayXem} ({ngayAmXem}) - {canNgayXemTen} {chiNgayXemTen}"
+
+        # Hour display: "hour_range - Can Chi"
+        # Calculate Can of hour using existing pattern from ThienBan.py
+        jd = jdFromDate(ngayDuongXem, thangDuongXem, namDuongXem)
+        canGioXem = ((jd - 1) * 2 % 10 + gioXem) % 10
+        if canGioXem == 0:
+            canGioXem = 10
+
+        # Hour ranges mapping
+        hour_ranges = {
+            1: "23h-01h", 2: "01h-03h", 3: "03h-05h", 4: "05h-07h",
+            5: "07h-09h", 6: "09h-11h", 7: "11h-13h", 8: "13h-15h",
+            9: "15h-17h", 10: "17h-19h", 11: "19h-21h", 12: "21h-23h"
+        }
+        gioXemDisplay = f"{hour_ranges[gioXem]} - {thienCan[canGioXem]['tenCan']} {diaChi[gioXem]['tenChi']}"
+
         laso = {
             'thienBan': thienBan,
             'thapNhiCung': db.thapNhiCung,
@@ -149,7 +198,10 @@ def api(request):
             'ngayXem': ngayXem,
             'thangXem': thangXem,
             'amlichXem': amlichXem,
-            'gioXem': gioXem
+            'gioXem': gioXem,
+            'thangXemDisplay': thangXemDisplay,
+            'ngayXemDisplay': ngayXemDisplay,
+            'gioXemDisplay': gioXemDisplay
         }
 
         # NOTE: Custom JSON serializer that handles both objects and dicts
@@ -383,7 +435,7 @@ def save_laso(request):
             else:
                 # Input is solar calendar, convert to lunar
                 ngayAm, thangAm, namAm, thangNhuan = ngayThangNam(
-                    ngayxem, thangxem, namxem, True, muigio
+                    ngayxem, thangxem, namxem, duongLich=True, timeZone=muigio
                 )
                 ngayAmXem = ngayAm
                 thangAmXem = thangAm
@@ -676,19 +728,26 @@ def update_laso(request):
                 # Input is already lunar calendar
                 ngayAmXem = ngayxem
                 thangAmXem = thangxem
+                namAmXem = laso.namxem  # Keep the same lunar year
             else:
                 # Input is solar calendar, convert to lunar
                 ngayAm, thangAm, namAm, thangNhuan = ngayThangNam(
-                    ngayxem, thangxem, laso.namxem, True, laso.muigio
+                    ngayxem, thangxem, laso.namxem, duongLich=True, timeZone=laso.muigio
                 )
                 ngayAmXem = ngayAm
                 thangAmXem = thangAm
+                namAmXem = namAm  # Use converted lunar year
 
-            canNamXem = (laso.namxem + 6) % 10 + 1
-            chiNamXem = (laso.namxem + 8) % 12 + 1
+            # NOTE: Calculate Can Chi for namxem (using năm âm lịch for accurate month Can Chi)
+            # IMPORTANT: Use namAmXem (lunar year) not laso.namxem (solar year) for month Can Chi
+            canNamXem = (laso.namxem + 6) % 10 + 1  # Can of solar year (for display)
+            chiNamXem = (laso.namxem + 8) % 12 + 1  # Chi of solar year (for display)
             canNamXemTen = thienCan[canNamXem]['tenCan']
             chiNamXemTen = diaChi[chiNamXem]['tenChi']
             namXemCanChi = f"{canNamXemTen} {chiNamXemTen}"
+
+            # Calculate Can of lunar year (for month Can Chi calculation)
+            canNamAmXem = (namAmXem + 6) % 10 + 1
 
             # NOTE: Calculate Can Chi for ngayxem
             canNgayXem, chiNgayXem = canChiNgay(
@@ -712,9 +771,9 @@ def update_laso(request):
             _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
 
             # NOTE: An tháng của năm xem theo phái Lưu Thái Tuế
-            # IMPORTANT: Use thienBan.thangAm (birth month) not thangAmXem
-            # thangAmXem is only used for highlighting in the UI
-            _ = db.nhapThangLuuThaiTue(thienBan.thangAm, laso.giosinh, canNamXem)
+            # IMPORTANT: Use thienBan.thangAm (birth month) and canNamAmXem (Can of lunar year)
+            # canNamAmXem ensures the month Can Chi matches the lunar year of viewing month
+            _ = db.nhapThangLuuThaiTue(thienBan.thangAm, laso.giosinh, canNamAmXem)
 
             # NOTE: An ngày của tháng xem vào các cung
             # Use thangAmXem to place days 1-30 in palaces
@@ -743,6 +802,54 @@ def update_laso(request):
             # Pass gioxem to mark the matching hour for bold display
             _ = db.nhapGioCanChi(ngayAmXem, ngayDuongXem, thangDuongXem, namDuongXem, gioxem)
 
+            # NOTE: Calculate display strings for Thiên bàn
+            # Month display: "thangxem (thangAmXem) - Can Chi"
+            # IMPORTANT: Reuse Can Chi from the bold month marker (thangLuuThaiTue)
+            # The bold month has Can Chi calculated correctly, just extract it
+            thangCanChi = None
+            for cung in db.thapNhiCung:
+                if hasattr(cung, 'thangLuuThaiTue') and cung.thangLuuThaiTue == thangAmXem:
+                    if hasattr(cung, 'thangLuuThaiTueCanChi'):
+                        thangCanChi = cung.thangLuuThaiTueCanChi
+                    break
+
+            # Expand abbreviated Can to full name for display
+            if thangCanChi:
+                canVietTat = thangCanChi.split('.')[0]
+                chiThangTen = thangCanChi.split('.')[1]
+                # Find full Can name
+                canThangTen = None
+                for canData in thienCan:
+                    if canData['chuCaiDau'] == canVietTat:
+                        canThangTen = canData['tenCan']
+                        break
+                thangXemDisplay = f"{thangxem} ({thangAmXem}) - {canThangTen} {chiThangTen}"
+            else:
+                thangXemDisplay = f"{thangxem} ({thangAmXem})"
+
+            # Day display: "ngayxem (ngayAmXem) - Can Chi" (using already calculated canNgayXem, chiNgayXem)
+            ngayXemDisplay = f"{ngayxem} ({ngayAmXem}) - {canNgayXemTen} {chiNgayXemTen}"
+
+            # Hour display: "hour_range - Can Chi"
+            # Calculate Can of hour using existing pattern from ThienBan.py
+            jd = jdFromDate(ngayDuongXem, thangDuongXem, namDuongXem)
+            canGioXem = ((jd - 1) * 2 % 10 + gioxem) % 10
+            if canGioXem == 0:
+                canGioXem = 10
+
+            # Hour ranges mapping
+            hour_ranges = {
+                1: "23h-01h", 2: "01h-03h", 3: "03h-05h", 4: "05h-07h",
+                5: "07h-09h", 6: "09h-11h", 7: "11h-13h", 8: "13h-15h",
+                9: "15h-17h", 10: "17h-19h", 11: "19h-21h", 12: "21h-23h"
+            }
+            gioXemDisplay = f"{hour_ranges[gioxem]} - {thienCan[canGioXem]['tenCan']} {diaChi[gioxem]['tenChi']}"
+        else:
+            # If namxem not provided, set display strings to None
+            thangXemDisplay = None
+            ngayXemDisplay = None
+            gioXemDisplay = None
+
         # Tạo chart_data JSON
         laso.chart_data = {
             'thienBan': thienBan.__dict__,
@@ -756,7 +863,10 @@ def update_laso(request):
             'ngayXem': ngayxem,
             'thangXem': thangxem,
             'amlichXem': amlichxem,
-            'gioXem': gioxem
+            'gioXem': gioxem,
+            'thangXemDisplay': thangXemDisplay,
+            'ngayXemDisplay': ngayXemDisplay,
+            'gioXemDisplay': gioXemDisplay
         }
 
         laso.save()

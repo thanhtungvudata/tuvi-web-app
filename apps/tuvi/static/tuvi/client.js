@@ -203,12 +203,15 @@ function renderLaSoTuVi(data) {
     const ngayAmXem = data.ngayAmXem;
     const thangAmXem = data.thangAmXem;
     const ngayXemCanChi = data.ngayXemCanChi;
+    const thangXemDisplay = data.thangXemDisplay;
+    const ngayXemDisplay = data.ngayXemDisplay;
+    const gioXemDisplay = data.gioXemDisplay;
 
     // Lưu lại data để có thể re-render khi toggle checkbox
     window.currentLaSoData = data;
     window.currentLaSoData.thapNhiCung = thapNhiCung; // Save converted array
 
-    renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi, thangAmXem);
+    renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi, thangAmXem, thangXemDisplay, ngayXemDisplay, gioXemDisplay);
     renderThapNhiCung(thapNhiCung, thienBan, ngayAmXem, thangAmXem, ngayXemCanChi);
     renderTuanTrietMarkers(thapNhiCung);
 
@@ -235,7 +238,7 @@ function getGioTimeRange(chiName) {
     return gioMapping[chiName] || '';
 }
 
-function renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi, thangAmXem) {
+function renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi, thangAmXem, thangXemDisplay, ngayXemDisplay, gioXemDisplay) {
     const thienBanContent = document.querySelector('.thien-ban-content');
 
     // NOTE: Find which palace has cungThan = True to get the palace name for "Thân cư"
@@ -262,6 +265,9 @@ function renderThienBan(thienBan, thapNhiCung, namXem, tuoiAmLich, namXemCanChi,
         <p><strong>Ngày sinh:</strong> <span class="value">${thienBan.ngayDuong} (${thienBan.ngayAm}) - ${thienBan.canNgayTen} ${thienBan.chiNgayTen}</span></p>
         <p><strong>Giờ sinh:</strong> <span class="value">${gioSinhDisplay}</span></p>
         <p><strong>Năm xem:</strong> <span class="value">${namXemDisplay}</span></p>
+        ${thangXemDisplay ? `<p><strong>Tháng xem:</strong> <span class="value">${thangXemDisplay}</span></p>` : ''}
+        ${ngayXemDisplay ? `<p><strong>Ngày xem:</strong> <span class="value">${ngayXemDisplay}</span></p>` : ''}
+        ${gioXemDisplay ? `<p><strong>Giờ xem:</strong> <span class="value">${gioXemDisplay}</span></p>` : ''}
         <p><strong>Âm dương:</strong> <span class="value">${thienBan.amDuongNamSinh} ${thienBan.namNu}</span></p>
         <p><strong>Mệnh:</strong> <span class="value">${thienBan.banMenh}</span></p>
         <p><strong>Cục:</strong> <span class="value">${thienBan.tenCuc}</span></p>

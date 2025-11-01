@@ -265,17 +265,29 @@ def canChiNgay(nn, tt, nnnn, duongLich=True, timeZone=7, thangNhuan=False):
     return [canNgay, chiNgay]
 
 
-def canChiGio(canNgay, gio):
-    """Phần này có lẽ chưa cần thiết và sẽ bổ sung sau.
+def canChiThang(nn, tt, nnnn, duongLich=True, timeZone=7):
+    """Tính Can Chi của tháng âm lịch.
 
     Args:
-        canNgay (int): Can của ngày cần xem, 1: Giáp, 2: Ất, 3: Bính,...
-        gio (int): Chi của giờ, 1: Tý, 2: Sửu,...
+        nn (int): Ngày
+        tt (int): Tháng
+        nnnn (int): Năm
+        duongLich (bool): True nếu là dương lịch
+        timeZone (int): Múi giờ
 
     Returns:
-        TYPE: Description
+        list: [canThang, chiThang] của tháng âm lịch
     """
-    return False
+    # Convert to lunar calendar if needed
+    if duongLich is True:
+        [nn, tt, nnnn, thangNhuan] = ngayThangNam(nn, tt, nnnn, timeZone=timeZone)
+
+    # Can của tháng âm lịch
+    canThang = (nnnn * 12 + tt + 3) % 10 + 1
+    # Chi của tháng âm lịch (từ 1-12)
+    chiThang = tt
+
+    return [canThang, chiThang]
 
 
 def ngayThangNamCanChi(nn, tt, nnnn, duongLich=True, timeZone=7):
