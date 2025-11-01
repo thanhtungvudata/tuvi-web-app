@@ -496,3 +496,53 @@ body {
     color: #e0e0e0;
     font-size: 20px;
 }
+
+/* Folder header actions */
+.folder-header-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.btn-create-folder {
+    background: #ff6b35;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+    font-weight: 600;
+}
+
+.btn-create-folder:hover {
+    background: #e55a25;
+    box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+}
+
+.btn-create-folder:active {
+    transform: scale(0.95);
+}
+
+/* Folder name input */
+.folder-name-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #4a4a6a;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    background: #3d3d5c;
+    color: #e0e0e0;
+}
+
+.folder-name-input:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: #4a4a6a;
+}
+
+.folder-name-input::placeholder {
+    color: #888;
+}

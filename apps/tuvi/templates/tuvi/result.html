@@ -370,14 +370,15 @@
 
                             // Điền thông tin vào form
                             // NOTE: Ưu tiên URL params nếu có (khi user click "Cập nhật lá số")
-                            document.querySelector('input[name="hoten"]').value = urlParams.get('hoten') || laso.hoten || '';
-                            document.querySelector('select[name="ngaysinh"]').value = urlParams.get('ngaysinh') || laso.ngaysinh || '';
-                            document.querySelector('select[name="thangsinh"]').value = urlParams.get('thangsinh') || laso.thangsinh || '';
-                            document.querySelector('select[name="namsinh"]').value = urlParams.get('namsinh') || laso.namsinh || '';
-                            document.querySelector('select[name="giosinh"]').value = urlParams.get('giosinh') || laso.giosinh || '';
-                            document.querySelector('select[name="gioitinh"]').value = urlParams.get('gioitinh') || laso.gioitinh || '';
+                            // Chỉ dùng URL params khi chúng thực sự có giá trị
+                            document.querySelector('input[name="hoten"]').value = urlParams.get('hoten') ?? laso.hoten ?? '';
+                            document.querySelector('select[name="ngaysinh"]').value = urlParams.get('ngaysinh') ?? laso.ngaysinh ?? '';
+                            document.querySelector('select[name="thangsinh"]').value = urlParams.get('thangsinh') ?? laso.thangsinh ?? '';
+                            document.querySelector('select[name="namsinh"]').value = urlParams.get('namsinh') ?? laso.namsinh ?? '';
+                            document.querySelector('select[name="giosinh"]').value = urlParams.get('giosinh') ?? laso.giosinh ?? '';
+                            document.querySelector('select[name="gioitinh"]').value = urlParams.get('gioitinh') ?? laso.gioitinh ?? '';
                             document.querySelector('input[name="amlich"]').checked = urlParams.get('amlich') === 'on' ? true : (laso.amlich || false);
-                            document.querySelector('select[name="muigio"]').value = urlParams.get('muigio') || laso.muigio || 7;
+                            document.querySelector('select[name="muigio"]').value = urlParams.get('muigio') ?? laso.muigio ?? 7;
                             // NOTE: Ưu tiên viewing date từ URL params (khi user thay đổi và click "Cập nhật lá số")
                             const ngayxemSelect = document.querySelector('select[name="ngayxem"]');
                             const thangxemSelect = document.querySelector('select[name="thangxem"]');
@@ -650,8 +651,9 @@
             .then(data => {
                 if (data.success) {
                     alert('Đã cập nhật lá số "' + currentLaso.name + '" thành công!');
-                    // Reload trang với laso_id để load lại dữ liệu - thêm timestamp để tránh cache
-                    window.location.href = `/result/?laso_id=${currentLaso.id}&t=${Date.now()}`;
+                    // Reload trang với laso_id để load lại dữ liệu - force reload to clear cache
+                    window.location.href = `/result/?laso_id=${currentLaso.id}`;
+                    window.location.reload(true);
                 } else {
                     // NOTE: Hiển thị thông báo lỗi dễ hiểu hơn cho lỗi UNIQUE constraint
                     const errorMessage = data.message.includes('UNIQUE constraint') || data.message.includes('unique_together')

@@ -4,7 +4,8 @@ from django.urls import re_path
 from apps.tuvi.views import (
     api, lasotuvi_new_index, lasotuvi_new_result, lasotuvi_new_manage,
     save_laso, update_laso, get_lasos, get_laso_detail, get_folders,
-    delete_laso, delete_folder, toggle_favorite_laso, move_laso, register_view
+    delete_laso, delete_folder, toggle_favorite_laso, move_laso, register_view,
+    create_folder
 )
 
 urlpatterns = [
@@ -23,6 +24,7 @@ urlpatterns = [
     re_path(r'^api/laso/(?P<laso_id>\d+)/toggle-favorite/$', toggle_favorite_laso, name='toggle_favorite_laso'),
     re_path(r'^api/laso/(?P<laso_id>\d+)/move/$', move_laso, name='move_laso'),
     re_path(r'^api/folders/$', get_folders, name='get_folders'),
+    re_path(r'^api/folder/create/$', create_folder, name='create_folder'),
     re_path(r'^api/folder/(?P<folder_id>\d+)/delete/$', delete_folder, name='delete_folder'),
     re_path(r'^result/$', lasotuvi_new_result, name='lasotuvi_result'),
     re_path(r'^new/$', lasotuvi_new_index, name='lasotuvi_new'),

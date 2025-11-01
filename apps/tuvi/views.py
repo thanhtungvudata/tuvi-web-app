@@ -538,6 +538,51 @@ def get_folders(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+@login_required
+def create_folder(request):
+    """API để tạo thư mục mới"""
+    try:
+        data = json.loads(request.body)
+        folder_name = data.get('name', '').strip()
+
+        if not folder_name:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tên thư mục không được để trống'
+            }, status=400)
+
+        # Kiểm tra xem thư mục đã tồn tại chưa
+        if Folder.objects.filter(owner=request.user, name=folder_name).exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'Thư mục này đã tồn tại'
+            }, status=400)
+
+        # Tạo thư mục mới
+        folder = Folder.objects.create(
+            owner=request.user,
+            name=folder_name
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Đã tạo thư mục thành công!',
+            'folder': {
+                'id': folder.id,
+                'name': folder.name,
+                'created_at': folder.created_at.strftime('%d/%m/%Y')
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def update_laso(request):
     """API để cập nhật lá số"""
     try:

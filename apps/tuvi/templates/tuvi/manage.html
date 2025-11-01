@@ -54,6 +54,9 @@
 
             <!-- Tab content: Thư mục -->
             <div class="tab-content" id="tab-folders">
+                <div class="folder-header-actions">
+                    <button class="btn-create-folder" onclick="showCreateFolderDialog()">+ Tạo thư mục mới</button>
+                </div>
                 <div class="folder-list view-list">
                     <p class="empty-message">Chưa có thư mục nào.</p>
                 </div>
@@ -236,6 +239,7 @@
                                 </div>
                                 <div class="laso-actions">
                                     <button class="btn-favorite" data-laso-id="${laso.id}" data-is-favorite="${laso.is_favorite}">${favoriteIcon}</button>
+                                    <button class="btn-move" data-laso-id="${laso.id}">Di chuyển</button>
                                     <button class="btn-delete" data-laso-id="${laso.id}">Xoá</button>
                                 </div>
                             </div>
@@ -257,6 +261,15 @@
                             e.stopPropagation();
                             const lasoId = this.dataset.lasoId;
                             toggleFavorite(lasoId);
+                        });
+                    });
+
+                    // Add click event for move buttons
+                    document.querySelectorAll('#tab-favorites .laso-item .btn-move').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const lasoId = this.dataset.lasoId;
+                            showMoveDialog(lasoId);
                         });
                     });
 
@@ -516,6 +529,54 @@
             });
         }
 
+        // Hàm hiển thị dialog tạo thư mục
+        function showCreateFolderDialog() {
+            const modal = document.getElementById('create-folder-modal');
+            const input = document.getElementById('folder-name-input');
+            input.value = '';
+            modal.style.display = 'flex';
+            input.focus();
+        }
+
+        // Hàm đóng dialog tạo thư mục
+        function closeCreateFolderDialog() {
+            const modal = document.getElementById('create-folder-modal');
+            modal.style.display = 'none';
+        }
+
+        // Hàm thực hiện tạo thư mục
+        function confirmCreateFolder() {
+            const input = document.getElementById('folder-name-input');
+            const folderName = input.value.trim();
+
+            if (!folderName) {
+                alert('Vui lòng nhập tên thư mục');
+                return;
+            }
+
+            fetch('/api/folder/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: folderName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    closeCreateFolderDialog();
+                    loadFolders();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error creating folder:', error);
+                alert('Có lỗi xảy ra khi tạo thư mục');
+            });
+        }
+
         // Load data khi trang load
         document.addEventListener('DOMContentLoaded', function() {
             loadLasos('all');
@@ -534,6 +595,18 @@
             <div class="modal-buttons">
                 <button onclick="confirmMove()" class="btn-confirm">Di chuyển</button>
                 <button onclick="closeMoveDialog()" class="btn-cancel">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal tạo thư mục mới -->
+    <div id="create-folder-modal" class="modal">
+        <div class="modal-content">
+            <h3>Tạo thư mục mới</h3>
+            <input type="text" id="folder-name-input" class="folder-name-input" placeholder="Nhập tên thư mục...">
+            <div class="modal-buttons">
+                <button onclick="confirmCreateFolder()" class="btn-confirm">Tạo</button>
+                <button onclick="closeCreateFolderDialog()" class="btn-cancel">Hủy</button>
             </div>
         </div>
     </div>
