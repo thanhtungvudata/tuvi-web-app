@@ -7,6 +7,7 @@
     <title>Lá Số Tử Vi - Kết quả</title>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="{% static 'tuvi/style.css' %}?v=200" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -173,6 +174,9 @@
                             </button>
                             <button type="button" class="btn-manage-action" id="btn-move-laso" title="Di chuyển">
                                 📁
+                            </button>
+                            <button type="button" class="btn-manage-action" id="btn-download-jpg" title="Tải xuống JPG">
+                                📥
                             </button>
                         </div>
                     </div>
@@ -879,6 +883,61 @@
                 .catch(error => {
                     console.error('Error:', error);
                     alert('Có lỗi xảy ra!');
+                });
+            });
+        }
+
+        // Xử lý nút Download JPG
+        const btnDownload = document.getElementById('btn-download-jpg');
+        if (btnDownload) {
+            btnDownload.addEventListener('click', function() {
+                // Get the chart container
+                const chartElement = document.querySelector('.lasotuvi-grid-wrapper');
+
+                if (!chartElement) {
+                    alert('Không tìm thấy lá số để tải xuống!');
+                    return;
+                }
+
+                // Show loading indicator
+                btnDownload.innerHTML = '⏳';
+                btnDownload.disabled = true;
+
+                // Use html2canvas to capture the chart
+                html2canvas(chartElement, {
+                    scale: 2,
+                    backgroundColor: '#1a1a2e',
+                    logging: false,
+                    useCORS: true
+                }).then(canvas => {
+                    // Convert canvas to blob
+                    canvas.toBlob(function(blob) {
+                        // Create download link
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+
+                        // Generate filename
+                        const hoten = document.querySelector('input[name="hoten"]')?.value || 'laso';
+                        const timestamp = new Date().toISOString().slice(0, 10);
+                        link.download = `${hoten}_${timestamp}.jpg`;
+
+                        link.href = url;
+                        link.click();
+
+                        // Clean up
+                        URL.revokeObjectURL(url);
+
+                        // Reset button
+                        btnDownload.innerHTML = '📥';
+                        btnDownload.disabled = false;
+                    }, 'image/jpeg', 0.95);
+                }).catch(error => {
+                    console.error('Error generating image:', error);
+                    alert('Có lỗi xảy ra khi tạo hình ảnh!');
+
+                    // Reset button
+                    btnDownload.innerHTML = '📥';
+                    btnDownload.disabled = false;
                 });
             });
         }
