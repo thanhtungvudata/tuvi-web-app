@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lá Số Tử Vi - Kết quả</title>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="{% static 'tuvi/style.css' %}?v=204" rel="stylesheet">
+    <link href="{% static 'tuvi/style.css' %}?v=206" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -82,7 +82,7 @@
                                         <label class="date-label">Năm sinh</label>
                                         <select name="namsinh" class="year-select">
                                             {% for year in birth_year_range %}
-                                                <option value="{{ year }}" {% if year == namsinh|default:1990 %}selected{% endif %}>{{ year }}</option>
+                                                <option value="{{ year }}" {% if year|stringformat:"s" == namsinh|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -113,17 +113,17 @@
                             <div class="edit-form-group">
                                 <label>Múi giờ:</label>
                                 <select name="muigio">
-                                    <option value="7" {% if muigio == '7' or muigio == '' %}selected{% endif %}>+7 (Việt Nam)</option>
-                                    <option value="0">0</option>
-                                    <option value="1">+1</option>
-                                    <option value="2">+2</option>
-                                    <option value="3">+3</option>
-                                    <option value="4">+4</option>
-                                    <option value="5">+5</option>
-                                    <option value="6">+6</option>
-                                    <option value="8">+8</option>
-                                    <option value="9">+9</option>
-                                    <option value="10">+10</option>
+                                    <option value="0" {% if muigio|stringformat:"s" == '0' %}selected{% endif %}>0</option>
+                                    <option value="1" {% if muigio|stringformat:"s" == '1' %}selected{% endif %}>+1</option>
+                                    <option value="2" {% if muigio|stringformat:"s" == '2' %}selected{% endif %}>+2</option>
+                                    <option value="3" {% if muigio|stringformat:"s" == '3' %}selected{% endif %}>+3</option>
+                                    <option value="4" {% if muigio|stringformat:"s" == '4' %}selected{% endif %}>+4</option>
+                                    <option value="5" {% if muigio|stringformat:"s" == '5' %}selected{% endif %}>+5</option>
+                                    <option value="6" {% if muigio|stringformat:"s" == '6' %}selected{% endif %}>+6</option>
+                                    <option value="7" {% if muigio|stringformat:"s" == '7' or muigio == '' %}selected{% endif %}>+7 (Việt Nam)</option>
+                                    <option value="8" {% if muigio|stringformat:"s" == '8' %}selected{% endif %}>+8</option>
+                                    <option value="9" {% if muigio|stringformat:"s" == '9' %}selected{% endif %}>+9</option>
+                                    <option value="10" {% if muigio|stringformat:"s" == '10' %}selected{% endif %}>+10</option>
                                 </select>
                             </div>
 
@@ -149,7 +149,7 @@
                                         <label class="date-label">Năm xem</label>
                                         <select name="namxem" class="year-select">
                                             {% for year in year_range %}
-                                                <option value="{{ year }}" {% if year == namxem %}selected{% endif %}>{{ year }}</option>
+                                                <option value="{{ year }}" {% if year|stringformat:"s" == namxem|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -164,6 +164,16 @@
 
                             <button type="submit" class="btn-edit-submit">Cập nhật lá số</button>
                         </form>
+
+                        <script>
+                        // NOTE: Remove empty laso_id from form submission
+                        document.getElementById('edit-form').addEventListener('submit', function(e) {
+                            const lasoIdInput = document.getElementById('hidden-laso-id');
+                            if (lasoIdInput && !lasoIdInput.value) {
+                                lasoIdInput.disabled = true;
+                            }
+                        });
+                        </script>
                     </div>
 
                     <!-- Box 2: Quản lý lá số -->
@@ -338,14 +348,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             currentLasoId = urlParams.get('laso_id');
 
+            // NOTE: Always sync hidden input with URL - clear if no laso_id in URL
+            const hiddenLasoIdInput = document.getElementById('hidden-laso-id');
+            if (hiddenLasoIdInput) {
+                hiddenLasoIdInput.value = currentLasoId || '';
+            }
+
             // Nếu có laso_id, load từ database trước
             if (currentLasoId) {
                 console.log('DEBUG: Loading laso_id:', currentLasoId);
-                // Set hidden input để giữ laso_id khi submit form
-                const hiddenLasoIdInput = document.getElementById('hidden-laso-id');
-                if (hiddenLasoIdInput) {
-                    hiddenLasoIdInput.value = currentLasoId;
-                }
 
                 fetch(`/api/laso/${currentLasoId}/`)
                     .then(response => response.json())
@@ -604,6 +615,12 @@
             const namxemSelect = document.querySelector('select[name="namxem"]');
             const amlichxemCheckbox = document.getElementById('amlichxem');
 
+            // DEBUG: Log current laso and form values before update
+            console.log('========== DEBUG handleUpdateLaso ==========');
+            console.log('Current laso.giosinh from DB:', currentLaso.giosinh);
+            console.log('Form giosinhSelect.value:', giosinhSelect?.value);
+            console.log('===========================================');
+
             const updateData = {
                 laso_id: currentLaso.id,
                 hoten: hotenInput?.value || '',
@@ -619,10 +636,7 @@
                 namxem: namxemSelect?.value || null,
                 amlichxem: amlichxemCheckbox?.checked ? 'on' : 'off'
             };
-
-            console.log('DEBUG handleUpdateLaso - amlichxemCheckbox:', amlichxemCheckbox);
-            console.log('DEBUG handleUpdateLaso - amlichxemCheckbox.checked:', amlichxemCheckbox?.checked);
-            console.log('DEBUG handleUpdateLaso - updateData:', updateData);
+            console.log('Update data being sent:', updateData);
 
             // Gửi request cập nhật
             fetch('/api/update-laso/', {
@@ -636,8 +650,8 @@
             .then(data => {
                 if (data.success) {
                     alert('Đã cập nhật lá số "' + currentLaso.name + '" thành công!');
-                    // Reload trang với laso_id để load lại dữ liệu
-                    window.location.href = `/result/?laso_id=${currentLaso.id}`;
+                    // Reload trang với laso_id để load lại dữ liệu - thêm timestamp để tránh cache
+                    window.location.href = `/result/?laso_id=${currentLaso.id}&t=${Date.now()}`;
                 } else {
                     // NOTE: Hiển thị thông báo lỗi dễ hiểu hơn cho lỗi UNIQUE constraint
                     const errorMessage = data.message.includes('UNIQUE constraint') || data.message.includes('unique_together')
@@ -954,6 +968,6 @@
             });
         }
     </script>
-    <script src="{% static 'tuvi/client.js' %}?v=1004"></script>
+    <script src="{% static 'tuvi/client.js' %}?v=1006"></script>
 </body>
 </html>

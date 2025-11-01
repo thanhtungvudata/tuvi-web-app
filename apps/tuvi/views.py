@@ -218,54 +218,58 @@ def lasotuvi_new_result(request):
     year_range = list(range(1900, 2101))
     birth_year_range = list(range(1900, 2101))
 
+    # NOTE: Always prioritize GET parameters (user's form changes) over database values
+    # Database values are only used as fallback when GET parameters are missing
     if laso_id:
-        # Load from saved laso
+        # Load from saved laso as fallback
         try:
             laso = SavedLaSo.objects.get(id=laso_id)
+            # NOTE: Use GET parameters if present, otherwise use database values
             context = {
-                'hoten': laso.hoten,
-                'ngaysinh': str(laso.ngaysinh),
-                'thangsinh': str(laso.thangsinh),
-                'namsinh': str(laso.namsinh),
-                'gioitinh': laso.gioitinh,
-                'giosinh': str(laso.giosinh),
-                'muigio': str(laso.muigio),
-                'amlich': 'on' if laso.amlich else 'off',
-                'ngayxem': current_day,
-                'thangxem': current_month,
-                'namxem': current_year,
-                'amlichxem': 'off',
+                'hoten': request.GET.get('hoten', laso.hoten),
+                'ngaysinh': request.GET.get('ngaysinh', str(laso.ngaysinh)),
+                'thangsinh': request.GET.get('thangsinh', str(laso.thangsinh)),
+                'namsinh': request.GET.get('namsinh', str(laso.namsinh)),
+                'gioitinh': request.GET.get('gioitinh', laso.gioitinh),
+                'giosinh': request.GET.get('giosinh', str(laso.giosinh)),
+                'muigio': request.GET.get('muigio', str(laso.muigio)),
+                'amlich': request.GET.get('amlich', 'on' if laso.amlich else 'off'),
+                'ngayxem': int(request.GET.get('ngayxem', str(current_day))),
+                'thangxem': int(request.GET.get('thangxem', str(current_month))),
+                'namxem': int(request.GET.get('namxem', str(current_year))),
+                'amlichxem': request.GET.get('amlichxem', 'off'),
                 'year_range': year_range,
                 'birth_year_range': birth_year_range,
             }
         except SavedLaSo.DoesNotExist:
-            # If laso not found, use default values
+            # If laso not found, use default values with GET parameters
             context = {
-                'hoten': '',
-                'ngaysinh': '1',
-                'thangsinh': '1',
-                'namsinh': '2000',
-                'gioitinh': 'nam',
-                'giosinh': '1',
-                'muigio': '7',
-                'amlich': 'off',
-                'ngayxem': current_day,
-                'thangxem': current_month,
-                'namxem': current_year,
-                'amlichxem': 'off',
+                'hoten': request.GET.get('hoten', ''),
+                'ngaysinh': request.GET.get('ngaysinh', '1'),
+                'thangsinh': request.GET.get('thangsinh', '1'),
+                'namsinh': request.GET.get('namsinh', '2000'),
+                'gioitinh': request.GET.get('gioitinh', 'nam'),
+                'giosinh': request.GET.get('giosinh', '1'),
+                'muigio': request.GET.get('muigio', '7'),
+                'amlich': request.GET.get('amlich', 'off'),
+                'ngayxem': int(request.GET.get('ngayxem', str(current_day))),
+                'thangxem': int(request.GET.get('thangxem', str(current_month))),
+                'namxem': int(request.GET.get('namxem', str(current_year))),
+                'amlichxem': request.GET.get('amlichxem', 'off'),
                 'year_range': year_range,
                 'birth_year_range': birth_year_range,
             }
     else:
         # Load from GET parameters
+        # NOTE: Keep values as strings for template comparison
         context = {
             'hoten': request.GET.get('hoten', ''),
-            'ngaysinh': int(request.GET.get('ngaysinh', '1')),
-            'thangsinh': int(request.GET.get('thangsinh', '1')),
-            'namsinh': int(request.GET.get('namsinh', '2000')),
+            'ngaysinh': request.GET.get('ngaysinh', '1'),
+            'thangsinh': request.GET.get('thangsinh', '1'),
+            'namsinh': request.GET.get('namsinh', '2000'),
             'gioitinh': request.GET.get('gioitinh', 'nam'),
-            'giosinh': int(request.GET.get('giosinh', '1')),
-            'muigio': int(request.GET.get('muigio', '7')),
+            'giosinh': request.GET.get('giosinh', '1'),
+            'muigio': request.GET.get('muigio', '7'),
             'amlich': request.GET.get('amlich', 'off'),
             'ngayxem': int(request.GET.get('ngayxem', str(current_day))),
             'thangxem': int(request.GET.get('thangxem', str(current_month))),
@@ -538,11 +542,6 @@ def update_laso(request):
     """API để cập nhật lá số"""
     try:
         data = json.loads(request.body)
-        print("="*80)
-        print(f"DEBUG update_laso - Received data: {data}")
-        print(f"DEBUG update_laso - namxem value: {data.get('namxem')}")
-        print(f"DEBUG update_laso - namxem type: {type(data.get('namxem'))}")
-        print("="*80)
         laso_id = data.get('laso_id')
 
         if not laso_id:
@@ -554,12 +553,22 @@ def update_laso(request):
 
         laso = SavedLaSo.objects.get(id=laso_id, owner=request.user)
 
+        # DEBUG: Log old and new values for birth hour
+        old_giosinh = laso.giosinh
+        new_giosinh = int(data.get('giosinh', 1))
+        print("="*80)
+        print(f"DEBUG update_laso - Laso ID: {laso_id}, Name: {laso.name}")
+        print(f"DEBUG update_laso - OLD giosinh: {old_giosinh}")
+        print(f"DEBUG update_laso - NEW giosinh: {new_giosinh}")
+        print(f"DEBUG update_laso - Changed: {old_giosinh != new_giosinh}")
+        print("="*80)
+
         # Cập nhật thông tin lá số
         laso.hoten = data.get('hoten', '')
         laso.ngaysinh = int(data.get('ngaysinh', 1))
         laso.thangsinh = int(data.get('thangsinh', 1))
         laso.namsinh = int(data.get('namsinh', 2000))
-        laso.giosinh = int(data.get('giosinh', 1))
+        laso.giosinh = new_giosinh
         laso.gioitinh = data.get('gioitinh', 'nam')
         laso.amlich = data.get('amlich', 'off') == 'on'
         laso.muigio = int(data.get('muigio', 7))
