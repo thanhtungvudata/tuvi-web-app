@@ -177,7 +177,10 @@ def lasotuvi_new_index(request):
     # Lấy thông tin từ URL nếu có (khi quay lại từ trang kết quả để sửa)
     now = datetime.datetime.now()
     current_year = now.year
+    current_month = now.month
+    current_day = now.day
     year_range = list(range(1900, 2101))
+    birth_year_range = list(range(1900, 2101))
 
     context = {
         'hoten': request.GET.get('hoten', ''),
@@ -188,8 +191,12 @@ def lasotuvi_new_index(request):
         'giosinh': request.GET.get('giosinh', ''),
         'muigio': request.GET.get('muigio', '7'),
         'amlich': request.GET.get('amlich', 'off'),
+        'ngayxem': int(request.GET.get('ngayxem', str(current_day))),
+        'thangxem': int(request.GET.get('thangxem', str(current_month))),
         'namxem': int(request.GET.get('namxem', str(current_year))),
+        'amlichxem': request.GET.get('amlichxem', 'off'),
         'year_range': year_range,
+        'birth_year_range': birth_year_range,
     }
     print(f"DEBUG index - namxem: {context['namxem']}, year_range length: {len(year_range)}, type: {type(year_range)}")
     return render(request, 'tuvi/index.html', context)

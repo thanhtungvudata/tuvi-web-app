@@ -387,7 +387,7 @@ def nguHanhNapAm(diaChi, thienCan, xuatBanMenh=False):
         "K4": "SA TRUNG KIM",
         "T4": "THIÊN HÀ THỦY",
         "H4": "THIÊN THƯỢNG HỎA",
-        "O4": "LỘ BÀN THỔ",
+        "O4": "LỘ BÀNG THỔ",
         "M4": "DƯƠNG LIỄU MỘC",
         "T5": "TRUYỀN TRUNG THỦY",
         "H5": "SƠN HẠ HỎA",

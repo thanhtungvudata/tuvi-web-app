@@ -41,7 +41,7 @@
                 <div class="edit-form-group">
                     <div class="date-inputs-with-labels">
                         <div class="date-field">
-                            <label class="date-label">Ngày</label>
+                            <label class="date-label">Ngày sinh</label>
                             <select name="ngaysinh" id="ngaysinh" class="date-select">
                                 {% for i in "x"|rjust:"31" %}
                                 <option value="{{ forloop.counter }}" {% if ngaysinh|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
@@ -49,7 +49,7 @@
                             </select>
                         </div>
                         <div class="date-field">
-                            <label class="date-label">Tháng</label>
+                            <label class="date-label">Tháng sinh</label>
                             <select name="thangsinh" id="thangsinh" class="date-select">
                                 {% for i in "x"|rjust:"12" %}
                                 <option value="{{ forloop.counter }}" {% if thangsinh|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
@@ -57,8 +57,12 @@
                             </select>
                         </div>
                         <div class="date-field">
-                            <label class="date-label">Năm</label>
-                            <input type="text" name="namsinh" id="namsinh" value="{{ namsinh }}" placeholder="Năm" class="year-input">
+                            <label class="date-label">Năm sinh</label>
+                            <select name="namsinh" id="namsinh" class="year-select">
+                                {% for year in birth_year_range %}
+                                    <option value="{{ year }}" {% if year == namsinh|default:1990 %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                     <label class="checkbox-label">
@@ -102,12 +106,35 @@
                 </div>
 
                 <div class="edit-form-group">
-                    <label>Năm xem:</label>
-                    <select name="namxem" id="namxem">
-                        {% for year in year_range %}
-                            <option value="{{ year }}" {% if year == namxem %}selected{% endif %}>{{ year }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="date-inputs-with-labels">
+                        <div class="date-field">
+                            <label class="date-label">Ngày xem</label>
+                            <select name="ngayxem" class="date-select">
+                                {% for i in "x"|rjust:"31" %}
+                                <option value="{{ forloop.counter }}" {% if ngayxem|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="date-field">
+                            <label class="date-label">Tháng xem</label>
+                            <select name="thangxem" class="date-select">
+                                {% for i in "x"|rjust:"12" %}
+                                <option value="{{ forloop.counter }}" {% if thangxem|stringformat:"s" == forloop.counter|stringformat:"s" %}selected{% endif %}>{{ forloop.counter }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="date-field">
+                            <label class="date-label">Năm xem</label>
+                            <select name="namxem" class="year-select">
+                                {% for year in year_range %}
+                                    <option value="{{ year }}" {% if year == namxem %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="amlichxem" name="amlichxem" {% if amlichxem == 'on' %}checked{% endif %}> Âm lịch
+                    </label>
                 </div>
 
                 <button type="submit" class="btn-submit">Lập lá số</button>
