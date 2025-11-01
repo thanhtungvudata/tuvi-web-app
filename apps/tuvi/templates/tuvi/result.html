@@ -639,7 +639,11 @@
                     // Reload trang với laso_id để load lại dữ liệu
                     window.location.href = `/result/?laso_id=${currentLaso.id}`;
                 } else {
-                    alert('Lỗi: ' + data.message);
+                    // NOTE: Hiển thị thông báo lỗi dễ hiểu hơn cho lỗi UNIQUE constraint
+                    const errorMessage = data.message.includes('UNIQUE constraint') || data.message.includes('unique_together')
+                        ? 'Tên lá số đã tồn tại. Vui lòng chọn tên khác!'
+                        : data.message;
+                    alert('Lỗi: ' + errorMessage);
                 }
             })
             .catch(error => {
@@ -777,7 +781,11 @@
                     document.getElementById('folder-select').value = '';
                     document.getElementById('new-folder-name').value = '';
                 } else {
-                    alert('Lỗi: ' + data.message);
+                    // NOTE: Hiển thị thông báo lỗi dễ hiểu hơn cho lỗi UNIQUE constraint
+                    const errorMessage = data.message.includes('UNIQUE constraint') || data.message.includes('unique_together')
+                        ? 'Tên lá số đã tồn tại. Vui lòng chọn tên khác!'
+                        : data.message;
+                    alert('Lỗi: ' + errorMessage);
                 }
             })
             .catch(error => {

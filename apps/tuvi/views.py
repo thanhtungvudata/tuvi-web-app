@@ -450,7 +450,7 @@ def save_laso(request):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'Lỗi: {str(e)}'
+            'message': str(e)
         }, status=400)
 
 
@@ -688,7 +688,7 @@ def update_laso(request):
         traceback.print_exc()
         return JsonResponse({
             'success': False,
-            'message': f'Lỗi: {str(e)}'
+            'message': str(e)
         }, status=400)
 
 
@@ -711,7 +711,7 @@ def delete_laso(request, laso_id):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'Lỗi: {str(e)}'
+            'message': str(e)
         }, status=400)
 
 
@@ -742,7 +742,7 @@ def delete_folder(request, folder_id):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'Lỗi: {str(e)}'
+            'message': str(e)
         }, status=400)
 
 
@@ -767,7 +767,7 @@ def toggle_favorite_laso(request, laso_id):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'Lỗi: {str(e)}'
+            'message': str(e)
         }, status=400)
 
 
@@ -808,7 +808,7 @@ def move_laso(request, laso_id):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': f'Lỗi: {str(e)}'
+            'message': str(e)
         }, status=400)
 
 def register_view(request):
