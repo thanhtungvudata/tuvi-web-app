@@ -47,6 +47,9 @@
 
             <!-- Tab content: Tất cả lá số -->
             <div class="tab-content active" id="tab-all">
+                <div class="search-box">
+                    <input type="text" id="search-all" class="search-input" placeholder="🔍 Tìm kiếm lá số...">
+                </div>
                 <div class="laso-list view-list">
                     <p class="empty-message">Chưa có lá số nào được lưu.</p>
                 </div>
@@ -54,6 +57,9 @@
 
             <!-- Tab content: Thư mục -->
             <div class="tab-content" id="tab-folders">
+                <div class="search-box">
+                    <input type="text" id="search-folders" class="search-input" placeholder="🔍 Tìm kiếm thư mục...">
+                </div>
                 <div class="folder-header-actions">
                     <button class="btn-create-folder" onclick="showCreateFolderDialog()">+ Tạo thư mục mới</button>
                 </div>
@@ -65,12 +71,18 @@
                         <button class="btn-back" onclick="backToFolders()">← Quay lại</button>
                         <h3 class="folder-title"></h3>
                     </div>
+                    <div class="search-box">
+                        <input type="text" id="search-folder-lasos" class="search-input" placeholder="🔍 Tìm kiếm lá số trong thư mục...">
+                    </div>
                     <div class="laso-list view-list"></div>
                 </div>
             </div>
 
             <!-- Tab content: Yêu thích -->
             <div class="tab-content" id="tab-favorites">
+                <div class="search-box">
+                    <input type="text" id="search-favorites" class="search-input" placeholder="🔍 Tìm kiếm lá số yêu thích...">
+                </div>
                 <div class="laso-list view-list">
                     <p class="empty-message">Chưa có lá số yêu thích nào.</p>
                 </div>
@@ -577,11 +589,146 @@
             });
         }
 
+        // Hàm loại bỏ dấu tiếng Việt
+        function removeVietnameseTones(str) {
+            return str
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd')
+                .replace(/Đ/g, 'D');
+        }
+
+        // Hàm tìm kiếm lá số
+        function searchLasos(searchTerm, tabId) {
+            const searchLower = removeVietnameseTones(searchTerm.toLowerCase().trim());
+            const tab = document.getElementById(tabId);
+            const lasoItems = tab.querySelectorAll('.laso-item');
+            const emptyMessage = tab.querySelector('.empty-message');
+            let visibleCount = 0;
+
+            lasoItems.forEach(item => {
+                const name = item.querySelector('h4')?.textContent || '';
+                const nameNormalized = removeVietnameseTones(name.toLowerCase());
+
+                if (searchLower === '' || nameNormalized.includes(searchLower)) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hiển thị thông báo nếu không tìm thấy kết quả
+            if (emptyMessage) {
+                if (visibleCount === 0 && lasoItems.length > 0) {
+                    emptyMessage.style.display = 'block';
+                    emptyMessage.textContent = 'Không tìm thấy lá số nào phù hợp.';
+                } else if (visibleCount === 0 && lasoItems.length === 0) {
+                    emptyMessage.style.display = 'block';
+                    if (tabId === 'tab-all') {
+                        emptyMessage.textContent = 'Chưa có lá số nào được lưu.';
+                    } else if (tabId === 'tab-favorites') {
+                        emptyMessage.textContent = 'Chưa có lá số yêu thích nào.';
+                    }
+                } else {
+                    emptyMessage.style.display = 'none';
+                }
+            }
+        }
+
+        // Hàm tìm kiếm thư mục
+        function searchFolders(searchTerm) {
+            const searchLower = removeVietnameseTones(searchTerm.toLowerCase().trim());
+            const folderList = document.querySelector('#tab-folders .folder-list');
+            const folderItems = folderList.querySelectorAll('.folder-item');
+            const emptyMessage = folderList.querySelector('.empty-message');
+            let visibleCount = 0;
+
+            folderItems.forEach(item => {
+                const name = item.querySelector('h4')?.textContent || '';
+                const nameNormalized = removeVietnameseTones(name.toLowerCase());
+
+                if (searchLower === '' || nameNormalized.includes(searchLower)) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hiển thị thông báo nếu không tìm thấy kết quả
+            if (emptyMessage) {
+                if (visibleCount === 0 && folderItems.length > 0) {
+                    emptyMessage.style.display = 'block';
+                    emptyMessage.textContent = 'Không tìm thấy thư mục nào phù hợp.';
+                } else if (visibleCount === 0 && folderItems.length === 0) {
+                    emptyMessage.style.display = 'block';
+                    emptyMessage.textContent = 'Chưa có thư mục nào.';
+                } else {
+                    emptyMessage.style.display = 'none';
+                }
+            }
+        }
+
+        // Hàm tìm kiếm lá số trong thư mục
+        function searchFolderLasos(searchTerm) {
+            const searchLower = removeVietnameseTones(searchTerm.toLowerCase().trim());
+            const folderLasosDiv = document.querySelector('#tab-folders .folder-lasos');
+            const lasoItems = folderLasosDiv.querySelectorAll('.laso-item');
+            let visibleCount = 0;
+
+            lasoItems.forEach(item => {
+                const name = item.querySelector('h4')?.textContent || '';
+                const nameNormalized = removeVietnameseTones(name.toLowerCase());
+
+                if (searchLower === '' || nameNormalized.includes(searchLower)) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Nếu không có kết quả, có thể thêm thông báo ở đây nếu cần
+        }
+
         // Load data khi trang load
         document.addEventListener('DOMContentLoaded', function() {
             loadLasos('all');
             loadFolders();
             loadFavorites();
+
+            // Xử lý tìm kiếm cho tab "Tất cả lá số"
+            const searchAllInput = document.getElementById('search-all');
+            if (searchAllInput) {
+                searchAllInput.addEventListener('input', function() {
+                    searchLasos(this.value, 'tab-all');
+                });
+            }
+
+            // Xử lý tìm kiếm cho tab "Yêu thích"
+            const searchFavoritesInput = document.getElementById('search-favorites');
+            if (searchFavoritesInput) {
+                searchFavoritesInput.addEventListener('input', function() {
+                    searchLasos(this.value, 'tab-favorites');
+                });
+            }
+
+            // Xử lý tìm kiếm cho tab "Thư mục"
+            const searchFoldersInput = document.getElementById('search-folders');
+            if (searchFoldersInput) {
+                searchFoldersInput.addEventListener('input', function() {
+                    searchFolders(this.value);
+                });
+            }
+
+            // Xử lý tìm kiếm cho lá số trong thư mục
+            const searchFolderLasosInput = document.getElementById('search-folder-lasos');
+            if (searchFolderLasosInput) {
+                searchFolderLasosInput.addEventListener('input', function() {
+                    searchFolderLasos(this.value);
+                });
+            }
         });
     </script>
 
