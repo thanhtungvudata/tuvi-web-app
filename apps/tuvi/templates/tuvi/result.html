@@ -10,6 +10,20 @@
 </head>
 <body>
     <div class="container">
+        <!-- User navigation -->
+        <div class="user-nav">
+            {% if user.is_authenticated %}
+                <span>Xin chào, {{ user.username }}</span>
+                <form method="POST" action="{% url 'logout' %}" style="display: inline; margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="user-nav-logout-btn">Đăng xuất</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Đăng nhập</a>
+                <a href="{% url 'register' %}">Đăng ký</a>
+            {% endif %}
+        </div>
+
         <!-- Header với nút hành động -->
         <div class="result-header">
             <h1 class="main-title">Lá Số Tử Vi</h1>

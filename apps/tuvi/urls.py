@@ -1,12 +1,19 @@
+from django.contrib.auth import views as auth_views
 from django.urls import re_path
 
 from apps.tuvi.views import (
     api, lasotuvi_new_index, lasotuvi_new_result, lasotuvi_new_manage,
     save_laso, update_laso, get_lasos, get_laso_detail, get_folders,
-    delete_laso, delete_folder, toggle_favorite_laso, move_laso
+    delete_laso, delete_folder, toggle_favorite_laso, move_laso, register_view
 )
 
 urlpatterns = [
+    # Authentication URLs
+    re_path(r'^register/$', register_view, name='register'),
+    re_path(r'^login/$', auth_views.LoginView.as_view(template_name='tuvi/login.html'), name='login'),
+    re_path(r'^logout/$', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+
+    # API URLs
     re_path(r'^api$', api, name='lasotuvi_api'),
     re_path(r'^api/save-laso/$', save_laso, name='save_laso'),
     re_path(r'^api/update-laso/$', update_laso, name='update_laso'),

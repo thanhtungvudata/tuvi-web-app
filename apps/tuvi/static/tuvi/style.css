@@ -21,10 +21,11 @@ body {
     max-width: 1500px;
     margin: 0 auto;
     background: #2d2d44;
-    padding: 30px;
+    padding: 60px 30px 30px;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     overflow: visible;
+    position: relative;
 }
 
 .main-title {
@@ -47,6 +48,12 @@ body {
 /* Wrapper cho trang lập lá số mới - giới hạn chiều rộng */
 .create-form-wrapper {
     max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Wrapper cho trang authentication - rộng hơn cho dễ đọc */
+.auth-form-wrapper {
+    max-width: 550px;
     margin: 0 auto;
 }
 
@@ -108,6 +115,8 @@ body {
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 20px;
+    padding-top: 10px;
+    position: relative;
 }
 
 .result-header .main-title {
@@ -975,4 +984,137 @@ body {
         width: 90%;
         margin: 20% auto;
     }
+}
+
+/* Authentication styles */
+.user-nav {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #e0e0e0;
+    font-size: 14px;
+    z-index: 100;
+}
+
+.user-nav span {
+    color: #ff6b35;
+    font-weight: bold;
+}
+
+.user-nav a {
+    color: #e0e0e0;
+    text-decoration: none;
+    padding: 6px 12px;
+    border: 1px solid #4a4a6a;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.user-nav a:hover {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    color: white;
+}
+
+.user-nav-logout-btn {
+    color: #e0e0e0;
+    background: none;
+    text-decoration: none;
+    padding: 6px 12px;
+    border: 1px solid #4a4a6a;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.user-nav-logout-btn:hover {
+    background: #ff6b35;
+    border-color: #ff6b35;
+    color: white;
+}
+
+.error-message {
+    background: #d32f2f;
+    color: white;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.error-message p {
+    margin: 5px 0;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #a0a0a0;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.help-text ul {
+    margin: 5px 0;
+    padding-left: 20px;
+}
+
+.help-text li {
+    margin: 3px 0;
+}
+
+/* Auth form specific styles */
+.auth-form-group {
+    margin-bottom: 25px;
+}
+
+.auth-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #e0e0e0;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.auth-form-group input[type="text"],
+.auth-form-group input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #4a4a6a;
+    border-radius: 6px;
+    background: #2d2d44;
+    color: #e0e0e0;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.auth-form-group input[type="text"]:focus,
+.auth-form-group input[type="password"]:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: #363652;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.edit-info-box input[type="text"],
+.edit-info-box input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #2d2d44;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.edit-info-box input[type="text"]:focus,
+.edit-info-box input[type="password"]:focus {
+    outline: none;
+    border-color: #ff6b35;
+    background: #363652;
 }

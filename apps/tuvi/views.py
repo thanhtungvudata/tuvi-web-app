@@ -1,8 +1,11 @@
 import datetime
 import json
 
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from core.calculations.DiaBan import diaBan
@@ -172,6 +175,7 @@ def api(request):
         }, status=500)
 
 
+@login_required
 def lasotuvi_new_index(request):
     """Trang chủ - Form nhập liệu"""
     # Lấy thông tin từ URL nếu có (khi quay lại từ trang kết quả để sửa)
@@ -202,6 +206,7 @@ def lasotuvi_new_index(request):
     return render(request, 'tuvi/index.html', context)
 
 
+@login_required
 def lasotuvi_new_result(request):
     """Trang kết quả - Hiển thị lá số"""
     # NOTE: Check if loading from saved laso
@@ -268,6 +273,7 @@ def lasotuvi_new_result(request):
     return render(request, 'tuvi/result.html', context)
 
 
+@login_required
 def lasotuvi_new_manage(request):
     """Trang quản lý lá số"""
     return render(request, 'tuvi/manage.html')
@@ -304,11 +310,14 @@ def save_laso(request):
         folder = None
         if new_folder_name:
             # Tạo thư mục mới
-            folder, created = Folder.objects.get_or_create(name=new_folder_name)
+            folder, created = Folder.objects.get_or_create(
+                name=new_folder_name,
+                owner=request.user
+            )
         elif folder_id and folder_id != "":
             # Dùng thư mục có sẵn (chỉ khi folder_id không rỗng)
             try:
-                folder = Folder.objects.get(id=int(folder_id))
+                folder = Folder.objects.get(id=int(folder_id), owner=request.user)
             except (Folder.DoesNotExist, ValueError):
                 pass
 
@@ -413,6 +422,7 @@ def save_laso(request):
 
         # Lưu vào database
         saved_laso = SavedLaSo.objects.create(
+            owner=request.user,
             name=laso_name,
             hoten=hoten,
             ngaysinh=ngaysinh,
@@ -441,17 +451,18 @@ def save_laso(request):
 
 
 @require_http_methods(["GET"])
+@login_required
 def get_lasos(request):
     """API để lấy danh sách lá số"""
     filter_type = request.GET.get('filter', 'all')  # all, favorites, folder_id
 
     if filter_type == 'favorites':
-        lasos = SavedLaSo.objects.filter(is_favorite=True)
+        lasos = SavedLaSo.objects.filter(owner=request.user, is_favorite=True)
     elif filter_type.startswith('folder_'):
         folder_id = filter_type.replace('folder_', '')
-        lasos = SavedLaSo.objects.filter(folder_id=folder_id)
+        lasos = SavedLaSo.objects.filter(owner=request.user, folder_id=folder_id)
     else:
-        lasos = SavedLaSo.objects.all()
+        lasos = SavedLaSo.objects.filter(owner=request.user)
 
     data = [{
         'id': laso.id,
@@ -473,10 +484,11 @@ def get_lasos(request):
 
 
 @require_http_methods(["GET"])
+@login_required
 def get_laso_detail(request, laso_id):
     """API để lấy chi tiết lá số (bao gồm chart_data)"""
     try:
-        laso = SavedLaSo.objects.get(id=laso_id)
+        laso = SavedLaSo.objects.get(id=laso_id, owner=request.user)
         return JsonResponse({
             'success': True,
             'laso': {
@@ -502,9 +514,10 @@ def get_laso_detail(request, laso_id):
 
 
 @require_http_methods(["GET"])
+@login_required
 def get_folders(request):
     """API để lấy danh sách thư mục"""
-    folders = Folder.objects.all()
+    folders = Folder.objects.filter(owner=request.user)
     data = [{
         'id': folder.id,
         'name': folder.name,
@@ -535,7 +548,7 @@ def update_laso(request):
                 'message': 'Thiếu laso_id'
             }, status=400)
 
-        laso = SavedLaSo.objects.get(id=laso_id)
+        laso = SavedLaSo.objects.get(id=laso_id, owner=request.user)
 
         # Cập nhật thông tin lá số
         laso.hoten = data.get('hoten', '')
@@ -680,7 +693,7 @@ def update_laso(request):
 def delete_laso(request, laso_id):
     """API để xoá lá số"""
     try:
-        laso = SavedLaSo.objects.get(id=laso_id)
+        laso = SavedLaSo.objects.get(id=laso_id, owner=request.user)
         laso.delete()
         return JsonResponse({
             'success': True,
@@ -703,7 +716,7 @@ def delete_laso(request, laso_id):
 def delete_folder(request, folder_id):
     """API để xoá thư mục"""
     try:
-        folder = Folder.objects.get(id=folder_id)
+        folder = Folder.objects.get(id=folder_id, owner=request.user)
         # Kiểm tra xem thư mục có lá số không
         laso_count = folder.lasos.count()
         if laso_count > 0:
@@ -734,7 +747,7 @@ def delete_folder(request, folder_id):
 def toggle_favorite_laso(request, laso_id):
     """API để chuyển đổi trạng thái yêu thích của lá số"""
     try:
-        laso = SavedLaSo.objects.get(id=laso_id)
+        laso = SavedLaSo.objects.get(id=laso_id, owner=request.user)
         laso.is_favorite = not laso.is_favorite
         laso.save()
         return JsonResponse({
@@ -763,10 +776,10 @@ def move_laso(request, laso_id):
         data = json.loads(request.body)
         folder_id = data.get('folder_id')
 
-        laso = SavedLaSo.objects.get(id=laso_id)
+        laso = SavedLaSo.objects.get(id=laso_id, owner=request.user)
 
         if folder_id:
-            folder = Folder.objects.get(id=folder_id)
+            folder = Folder.objects.get(id=folder_id, owner=request.user)
             laso.folder = folder
             folder_name = folder.name
         else:
@@ -793,3 +806,15 @@ def move_laso(request, laso_id):
             'success': False,
             'message': f'Lỗi: {str(e)}'
         }, status=400)
+
+def register_view(request):
+    """View for user registration"""
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('lasotuvi_index')
+    else:
+        form = UserCreationForm()
+    return render(request, 'tuvi/register.html', {'form': form})

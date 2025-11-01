@@ -47,3 +47,6 @@ htmlcov/
 #Claude
 CLAUDE.md
 .claude/
+
+# memory
+memory/

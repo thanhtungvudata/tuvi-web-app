@@ -1,8 +1,10 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
 class Folder(models.Model):
     """Thư mục để tổ chức lá số"""
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folders', verbose_name="Chủ sở hữu")
     name = models.CharField(max_length=200, verbose_name="Tên thư mục")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
@@ -12,6 +14,7 @@ class Folder(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Thư mục'
         verbose_name_plural = 'Thư mục'
+        unique_together = [['owner', 'name']]
 
     def __str__(self):
         return self.name
@@ -19,6 +22,9 @@ class Folder(models.Model):
 
 class SavedLaSo(models.Model):
     """Lá số đã lưu - Lưu cả thông tin đầu vào và kết quả JSON"""
+    # Chủ sở hữu
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_lasos', verbose_name="Chủ sở hữu")
+
     # Thông tin cơ bản
     name = models.CharField(max_length=200, verbose_name="Tên lá số")
 
@@ -56,6 +62,7 @@ class SavedLaSo(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Lá số đã lưu'
         verbose_name_plural = 'Lá số đã lưu'
+        unique_together = [['owner', 'name']]
         indexes = [
             models.Index(fields=['-created_at']),
             models.Index(fields=['is_favorite']),

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+{% load static %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng nhập - Lá Số Tử Vi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'tuvi/style.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="main-title">Đăng nhập</h1>
+
+        <div class="auth-form-wrapper">
+            <div class="edit-info-box">
+                <h3>Thông tin đăng nhập</h3>
+
+                {% if form.errors %}
+                <div class="error-message">
+                    <p>Tên đăng nhập hoặc mật khẩu không đúng. Vui lòng thử lại.</p>
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+
+                    <div class="auth-form-group">
+                        <label for="{{ form.username.id_for_label }}">Tên đăng nhập:</label>
+                        {{ form.username }}
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="{{ form.password.id_for_label }}">Mật khẩu:</label>
+                        {{ form.password }}
+                    </div>
+
+                    <input type="hidden" name="next" value="{{ next }}">
+
+                    <button type="submit" class="btn-submit">Đăng nhập</button>
+                </form>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <p style="color: #e0e0e0;">
+                        Chưa có tài khoản?
+                        <a href="{% url 'register' %}" style="color: #ff6b35; text-decoration: none; font-weight: bold;">Đăng ký ngay</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
