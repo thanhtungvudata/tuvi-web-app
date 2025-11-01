@@ -260,12 +260,12 @@ def lasotuvi_new_result(request):
         # Load from GET parameters
         context = {
             'hoten': request.GET.get('hoten', ''),
-            'ngaysinh': request.GET.get('ngaysinh', '1'),
-            'thangsinh': request.GET.get('thangsinh', '1'),
-            'namsinh': request.GET.get('namsinh', '2000'),
+            'ngaysinh': int(request.GET.get('ngaysinh', '1')),
+            'thangsinh': int(request.GET.get('thangsinh', '1')),
+            'namsinh': int(request.GET.get('namsinh', '2000')),
             'gioitinh': request.GET.get('gioitinh', 'nam'),
-            'giosinh': request.GET.get('giosinh', '1'),
-            'muigio': request.GET.get('muigio', '7'),
+            'giosinh': int(request.GET.get('giosinh', '1')),
+            'muigio': int(request.GET.get('muigio', '7')),
             'amlich': request.GET.get('amlich', 'off'),
             'ngayxem': int(request.GET.get('ngayxem', str(current_day))),
             'thangxem': int(request.GET.get('thangxem', str(current_month))),
