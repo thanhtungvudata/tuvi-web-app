@@ -594,6 +594,142 @@ function getHanhClass(nguHanh) {
     return hanhMap[nguHanh] || '';
 }
 
+// NOTE: Helper function to get connection point for a cung based on its position
+function getCungConnectionPoint(cungElement) {
+    const rect = cungElement.getBoundingClientRect();
+    const gridContainer = document.querySelector('.lasotuvi-grid-container');
+    const containerRect = gridContainer.getBoundingClientRect();
+
+    const cungSo = parseInt(cungElement.getAttribute('data-cung'));
+
+    // Calculate relative position
+    const relX = rect.left - containerRect.left;
+    const relY = rect.top - containerRect.top;
+
+    // Grid layout:
+    // Row 1: 6  7  8  9
+    // Row 2: 5  TB TB 10
+    // Row 3: 4  TB TB 11
+    // Row 4: 3  2  1  12
+    // Corner cungs: 6, 9, 3, 12 - use inner corner point
+    // Edge cungs: use middle of edge touching thiên bàn
+
+    if (cungSo === 6) {
+        // Top-left corner: point at inner corner (bottom-right)
+        return {
+            x: relX + rect.width,
+            y: relY + rect.height
+        };
+    } else if (cungSo === 9) {
+        // Top-right corner: point at inner corner (bottom-left)
+        return {
+            x: relX,
+            y: relY + rect.height
+        };
+    } else if (cungSo === 3) {
+        // Bottom-left corner: point at inner corner (top-right)
+        return {
+            x: relX + rect.width,
+            y: relY
+        };
+    } else if (cungSo === 12) {
+        // Bottom-right corner: point at inner corner (top-left)
+        return {
+            x: relX,
+            y: relY
+        };
+    } else if (cungSo === 7 || cungSo === 8) {
+        // Top edge: middle of bottom edge (touching thiên bàn)
+        return {
+            x: relX + rect.width / 2,
+            y: relY + rect.height
+        };
+    } else if (cungSo === 1 || cungSo === 2) {
+        // Bottom edge: middle of top edge (touching thiên bàn)
+        return {
+            x: relX + rect.width / 2,
+            y: relY
+        };
+    } else if (cungSo === 5 || cungSo === 4) {
+        // Left edge: middle of right edge (touching thiên bàn)
+        return {
+            x: relX + rect.width,
+            y: relY + rect.height / 2
+        };
+    } else if (cungSo === 10 || cungSo === 11) {
+        // Right edge: middle of left edge (touching thiên bàn)
+        return {
+            x: relX,
+            y: relY + rect.height / 2
+        };
+    }
+
+    // Fallback to center
+    return {
+        x: relX + rect.width / 2,
+        y: relY + rect.height / 2
+    };
+}
+
+// NOTE: Function to create or get SVG overlay for drawing lines
+function getSVGOverlay() {
+    let svg = document.getElementById('cung-connection-svg');
+    if (!svg) {
+        const gridContainer = document.querySelector('.lasotuvi-grid-container');
+        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.id = 'cung-connection-svg';
+        svg.style.position = 'absolute';
+        svg.style.top = '0';
+        svg.style.left = '0';
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+        svg.style.pointerEvents = 'none';
+        svg.style.zIndex = '3';
+        gridContainer.appendChild(svg);
+    }
+    return svg;
+}
+
+// NOTE: Function to draw lines between clicked cung and highlighted cungs
+function drawConnectionLines(clickedCungSo, relatedCungs) {
+    const svg = getSVGOverlay();
+    // Clear existing lines
+    svg.innerHTML = '';
+
+    const clickedCung = document.getElementById(`cung-${clickedCungSo}`);
+    if (!clickedCung) return;
+
+    const clickedPoint = getCungConnectionPoint(clickedCung);
+
+    // Draw line to each related cung
+    relatedCungs.forEach(relation => {
+        const targetCung = document.getElementById(`cung-${relation.cungSo}`);
+        if (!targetCung) return;
+
+        const targetPoint = getCungConnectionPoint(targetCung);
+
+        // Create line element
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', clickedPoint.x);
+        line.setAttribute('y1', clickedPoint.y);
+        line.setAttribute('x2', targetPoint.x);
+        line.setAttribute('y2', targetPoint.y);
+        line.setAttribute('stroke', relation.color);
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('stroke-dasharray', '5,5');
+
+        svg.appendChild(line);
+    });
+}
+
+// NOTE: Function to clear all connection lines
+function clearConnectionLines() {
+    const svg = document.getElementById('cung-connection-svg');
+    if (svg) {
+        svg.innerHTML = '';
+    }
+}
+
 function highlightRelatedCung(cungSo) {
     // NOTE: Nếu click vào cùng cung đang highlight, thì tắt highlight
     if (currentHighlightedCung === cungSo) {
@@ -602,6 +738,7 @@ function highlightRelatedCung(cungSo) {
             el.style.background = '#fef9f3';
             el.style.border = 'none';
         });
+        clearConnectionLines();
         currentHighlightedCung = null;
         return;
     }
@@ -637,6 +774,14 @@ function highlightRelatedCung(cungSo) {
             el.style.border = 'none';
         }
     });
+
+    // Draw connection lines
+    const relatedCungs = [
+        { cungSo: doiCung === 0 ? 12 : doiCung, color: '#dc3545' }, // Đối cung - red
+        { cungSo: tamHop1 === 0 ? 12 : tamHop1, color: '#0d6efd' }, // Tam hợp 1 - blue (darker)
+        { cungSo: tamHop2 === 0 ? 12 : tamHop2, color: '#0d6efd' }  // Tam hợp 2 - blue (darker)
+    ];
+    drawConnectionLines(cungSo, relatedCungs);
 
     // Lưu lại cung đang được highlight
     currentHighlightedCung = cungSo;

@@ -616,6 +616,7 @@ body {
     font-weight: 700 !important;
     overflow: hidden;
     box-sizing: border-box;
+    z-index: 5;
 }
 
 .cung:hover {
@@ -636,6 +637,7 @@ body {
     overflow: hidden;
     box-sizing: border-box;
     border: none;
+    z-index: 2;
 }
 
 .thien-ban h2 {
