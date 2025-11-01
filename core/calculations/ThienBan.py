@@ -5,7 +5,7 @@
 from core.calculations.AmDuong import (canChiNgay, diaChi, ngayThangNam, ngayThangNamCanChi,
                      nguHanh, nguHanhNapAm, thienCan, timCuc, sinhKhac)
 import time
-from core.calculations.Lich_HND import jdFromDate
+from core.calculations.Lich_HND import jdFromDate, L2S
 
 
 class lapThienBan(object):
@@ -26,15 +26,25 @@ class lapThienBan(object):
 
         self.timeZone = timeZone
         self.today = time.strftime("%d/%m/%Y")
-        self.ngayDuong, self.thangDuong, self.namDuong, self.ten = \
-            nn, tt, nnnn, ten
+        self.ten = ten
+
+        # NOTE: Handle both solar and lunar calendar input
         if duongLich is True:
+            # Input is solar calendar (dương lịch)
+            self.ngayDuong, self.thangDuong, self.namDuong = nn, tt, nnnn
+            # Convert solar to lunar
             self.ngayAm, self.thangAm, self.namAm, self.thangNhuan = \
                 ngayThangNam(self.ngayDuong, self.thangDuong, self.namDuong,
                              True, self.timeZone)
         else:
-            self.ngayAm, self.thangAm, self.namAm = self.ngayDuong,\
-                self.thangDuong, self.namDuong
+            # Input is lunar calendar (âm lịch)
+            self.ngayAm, self.thangAm, self.namAm = nn, tt, nnnn
+            self.thangNhuan = False  # Default to non-leap month
+            # Convert lunar to solar
+            ngayDuongConverted, thangDuongConverted, namDuongConverted = \
+                L2S(self.ngayAm, self.thangAm, self.namAm, self.thangNhuan, self.timeZone)
+            self.ngayDuong, self.thangDuong, self.namDuong = \
+                ngayDuongConverted, thangDuongConverted, namDuongConverted
 
         self.canThang, self.canNam, self.chiNam = \
             ngayThangNamCanChi(self.ngayAm, self.thangAm,

@@ -103,7 +103,11 @@
 
                 <div class="edit-form-group">
                     <label>Năm xem:</label>
-                    <input type="number" name="namxem" id="namxem" value="{{ namxem }}" placeholder="Nhập năm xem" min="1900" max="2100">
+                    <select name="namxem" id="namxem">
+                        {% for year in year_range %}
+                            <option value="{{ year }}" {% if year == namxem %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <button type="submit" class="btn-submit">Lập lá số</button>

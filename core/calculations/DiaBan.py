@@ -655,6 +655,60 @@ class diaBan(object):
 
         return self
 
+    def nhapThangLuuThaiTue(self, thangSinh, gioSinh):
+        """
+        An tháng của năm xem theo phái Lưu Thái Tuế.
+
+        Logic:
+        1. Lấy cung có MỆNH.TV làm tháng Giêng (tháng 1 âm lịch)
+        2. Đếm nghịch chiều kim đồng hồ (nghịch - đi ngược 12 cung) từ MỆNH.TV đến tháng sinh
+        3. Từ cung tháng sinh, coi đó là giờ Tý
+        4. Đếm thuận chiều kim đồng hồ (thuận - đi xuôi 12 cung) từ giờ Tý đến giờ sinh
+        5. An tháng 1 (của năm xem) vào cung tìm được ở bước 4
+        6. Các tháng còn lại (2-12) an thuận chiều kim đồng hồ
+
+        Args:
+            thangSinh (int): Tháng sinh âm lịch (1-12)
+            gioSinh (int): Giờ sinh (1-12)
+
+        Returns:
+            self: DiaBan instance for chaining
+        """
+        from core.calculations.AmDuong import dichCung
+
+        # NOTE: Step 1 - Find palace with MỆNH.TV
+        cungMenhTV = None
+        for cung in self.thapNhiCung:
+            if cung.cungSo == 0:
+                continue
+            if hasattr(cung, 'cungTieuVan') and cung.cungTieuVan == "MỆNH.TV":
+                cungMenhTV = cung.cungSo
+                break
+
+        # NOTE: If MỆNH.TV not found, return without placing months
+        if cungMenhTV is None:
+            return self
+
+        # NOTE: Step 2 - Count counter-clockwise (nghịch = -1) from MỆNH.TV to birth month
+        # MỆNH.TV = tháng Giêng (1), so we need to go (thangSinh - 1) steps backward
+        cungThangSinh = dichCung(cungMenhTV, -(thangSinh - 1))
+
+        # NOTE: Step 3 - cungThangSinh is considered as giờ Tý (hour 1)
+        # NOTE: Step 4 - Count clockwise (thuận = +1) from giờ Tý to birth hour
+        # We need to go (gioSinh - 1) steps forward
+        cungThang1 = dichCung(cungThangSinh, gioSinh - 1)
+
+        # NOTE: Step 5 & 6 - Place month 1-12 clockwise starting from cungThang1
+        # Store month numbers in a temporary attribute for display
+        for i in range(12):
+            thangSo = i + 1  # Month 1-12
+            targetCung = dichCung(cungThang1, i)  # Clockwise direction
+            # Add month marker to the palace
+            if not hasattr(self.thapNhiCung[targetCung], 'thangLuuThaiTue'):
+                self.thapNhiCung[targetCung].thangLuuThaiTue = thangSo
+
+        return self
+
     def nhapCungThan(self):
         self.thapNhiCung[self.cungThan].anCungThan()
 

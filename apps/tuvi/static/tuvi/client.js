@@ -498,6 +498,11 @@ function renderThapNhiCung(thapNhiCung, thienBan) {
                 html += `<div class="cung-tieu-van">${cung.cungTieuVan}</div>`;
             }
 
+            // NOTE: Hiển thị Tháng Lưu Thái Tuế ở góc phải dưới (nếu checkbox được bật)
+            if (hienCungTieuVan && cung.thangLuuThaiTue) {
+                html += `<div class="thang-luu-thai-tue">Tháng ${cung.thangLuuThaiTue}</div>`;
+            }
+
             // Hiển thị sao Vòng Trường Sinh ở đáy cung, căn giữa
             if (saoTrangSinh.length > 0) {
                 html += '<div class="cung-trang-sinh-wrapper">';

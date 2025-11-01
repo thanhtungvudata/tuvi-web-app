@@ -492,31 +492,31 @@ body {
 }
 
 /* Tuần positions for vertical pairs (middle of border) */
-/* Tuất-Hợi (cung 11-12): Right column, row 3-4 */
+/* Tuất-Hợi (cung 11-12): Right column, row 3-4 - center of right column */
 .tuan-marker.tuat-hoi {
-    top: 602px;  /* Between row 3 and 4: 200*3 + gap*2 */
-    left: calc(155px * 3 + 1px * 3 + 155px / 2); /* Center of rightmost column: 543.5px */
-    transform: translate(-50%, -50%);
+    top: 602px;  /* Between row 3 and 4: 200*3 + gap*3 = 603px */
+    right: calc(170px / 2); /* Center of rightmost column from right edge: 85px */
+    transform: translate(50%, -50%);
 }
 
-/* Thân-Dậu (cung 9-10): Right column, row 1-2 */
+/* Thân-Dậu (cung 9-10): Right column, row 1-2 - center of right column */
 .tuan-marker.than-dau {
-    top: 201px;  /* Between row 1 and 2: 200 + gap */
-    left: calc(155px * 3 + 1px * 3 + 155px / 2); /* Center of rightmost column: 543.5px */
-    transform: translate(-50%, -50%);
+    top: 201px;  /* Between row 1 and 2: 200 + gap = 201px */
+    right: calc(170px / 2); /* Center of rightmost column from right edge: 85px */
+    transform: translate(50%, -50%);
 }
 
-/* Thìn-Tỵ (cung 5-6): Left column, row 1-2 */
+/* Thìn-Tỵ (cung 5-6): Left column, row 1-2 - center of left column */
 .tuan-marker.thin-ty {
-    top: 201px;  /* Between row 1 and 2 */
-    left: calc(155px / 2);   /* Center of leftmost column: 77.5px */
+    top: 201px;  /* Between row 1 and 2: 200 + gap = 201px */
+    left: calc(170px / 2);   /* Center of leftmost column: 85px */
     transform: translate(-50%, -50%);
 }
 
-/* Dần-Mão (cung 3-4): Left column, row 3-4 */
+/* Dần-Mão (cung 3-4): Left column, row 3-4 - center of left column */
 .tuan-marker.dan-mao {
-    top: 602px;  /* Between row 3 and 4 */
-    left: calc(155px / 2);   /* Center of leftmost column: 77.5px */
+    top: 602px;  /* Between row 3 and 4: 200*3 + gap*3 = 603px */
+    left: calc(170px / 2);   /* Center of leftmost column: 85px */
     transform: translate(-50%, -50%);
 }
 
@@ -550,24 +550,24 @@ body {
 }
 
 /* Triệt positions for vertical pairs (middle of border) */
-/* Thân-Dậu (cung 9-10): Right column, row 1-2 */
+/* Thân-Dậu (cung 9-10): Right column, row 1-2 - center of right column */
 .triet-marker.than-dau {
-    top: 201px;  /* Between row 1 and 2: 200 + gap */
-    left: calc(155px * 3 + 1px * 3 + 155px / 2); /* Center of rightmost column: 543.5px */
-    transform: translate(-50%, -50%);
+    top: 201px;  /* Between row 1 and 2: 200 + gap = 201px */
+    right: calc(170px / 2); /* Center of rightmost column from right edge: 85px */
+    transform: translate(50%, -50%);
 }
 
-/* Thìn-Tỵ (cung 5-6): Left column, row 1-2 */
+/* Thìn-Tỵ (cung 5-6): Left column, row 1-2 - center of left column */
 .triet-marker.thin-ty {
-    top: 201px;  /* Between row 1 and 2 */
-    left: calc(155px / 2);   /* Center of leftmost column: 77.5px */
+    top: 201px;  /* Between row 1 and 2: 200 + gap = 201px */
+    left: calc(170px / 2);   /* Center of leftmost column: 85px */
     transform: translate(-50%, -50%);
 }
 
-/* Dần-Mão (cung 3-4): Left column, row 3-4 */
+/* Dần-Mão (cung 3-4): Left column, row 3-4 - center of left column */
 .triet-marker.dan-mao {
-    top: 602px;  /* Between row 3 and 4 */
-    left: calc(155px / 2);   /* Center of leftmost column: 77.5px */
+    top: 602px;  /* Between row 3 and 4: 200*3 + gap*3 = 603px */
+    left: calc(170px / 2);   /* Center of leftmost column: 85px */
     transform: translate(-50%, -50%);
 }
 
@@ -728,6 +728,18 @@ body {
     left: 5px;
     font-size: 9px;
     font-weight: bold;
+    color: #000000;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+/* Tháng Lưu Thái Tuế - góc phải dưới, cùng dòng với Vòng Trường Sinh */
+.thang-luu-thai-tue {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    font-size: 9px;
+    font-weight: normal;
     color: #000000;
     line-height: 1.2;
     white-space: nowrap;

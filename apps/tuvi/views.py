@@ -28,6 +28,9 @@ def api(request):
         namXem = int(request.GET.get('namxem') or now.year)
 
         print("="*80)
+        print(f"DEBUG API - ALL PARAMS: {dict(request.GET)}")
+        print(f"DEBUG API - amlich param: {request.GET.get('amlich')}")
+        print(f"DEBUG API - duongLich: {duongLich}")
         print(f"DEBUG API - namxem from request: {request.GET.get('namxem')}")
         print(f"DEBUG API - namXem parsed: {namXem}")
         print(f"DEBUG API - now.year: {now.year}")
@@ -36,7 +39,7 @@ def api(request):
         db = lapDiaBan(diaBan, ngaySinh, thangSinh, namSinh, gioSinh,
                        gioiTinh, duongLich, timeZone)
         thienBan = lapThienBan(ngaySinh, thangSinh, namSinh,
-                               gioSinh, gioiTinh, hoTen, db)
+                               gioSinh, gioiTinh, hoTen, db, duongLich, timeZone)
 
         # NOTE: Calculate lunar age (Vietnamese traditional age)
         tuoiAmLich = thienBan.tinhTuoiAmLich(namXem)
@@ -72,6 +75,10 @@ def api(request):
 
         # NOTE: Calculate and place Tứ Hóa Lưu Tiểu Vận based on Can of namXem
         _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
+
+        # NOTE: An tháng của năm xem theo phái Lưu Thái Tuế
+        # IMPORTANT: Use thienBan.thangAm (lunar month) not input thangSinh (may be solar)
+        _ = db.nhapThangLuuThaiTue(thienBan.thangAm, gioSinh)
 
         laso = {
             'thienBan': thienBan,
@@ -124,6 +131,9 @@ def lasotuvi_new_index(request):
     """Trang chủ - Form nhập liệu"""
     # Lấy thông tin từ URL nếu có (khi quay lại từ trang kết quả để sửa)
     now = datetime.datetime.now()
+    current_year = now.year
+    year_range = list(range(1900, 2101))
+
     context = {
         'hoten': request.GET.get('hoten', ''),
         'ngaysinh': request.GET.get('ngaysinh', ''),
@@ -133,8 +143,10 @@ def lasotuvi_new_index(request):
         'giosinh': request.GET.get('giosinh', ''),
         'muigio': request.GET.get('muigio', '7'),
         'amlich': request.GET.get('amlich', 'off'),
-        'namxem': request.GET.get('namxem', str(now.year)),
+        'namxem': int(request.GET.get('namxem', str(current_year))),
+        'year_range': year_range,
     }
+    print(f"DEBUG index - namxem: {context['namxem']}, year_range length: {len(year_range)}, type: {type(year_range)}")
     return render(request, 'tuvi/index.html', context)
 
 
@@ -143,6 +155,8 @@ def lasotuvi_new_result(request):
     # NOTE: Check if loading from saved laso
     laso_id = request.GET.get('laso_id')
     now = datetime.datetime.now()
+    current_year = now.year
+    year_range = list(range(1900, 2101))
 
     if laso_id:
         # Load from saved laso
@@ -157,7 +171,8 @@ def lasotuvi_new_result(request):
                 'giosinh': str(laso.giosinh),
                 'muigio': str(laso.muigio),
                 'amlich': 'on' if laso.amlich else 'off',
-                'namxem': str(laso.namxem) if laso.namxem else str(now.year),
+                'namxem': current_year,
+                'year_range': year_range,
             }
         except SavedLaSo.DoesNotExist:
             # If laso not found, use default values
@@ -170,7 +185,8 @@ def lasotuvi_new_result(request):
                 'giosinh': '1',
                 'muigio': '7',
                 'amlich': 'off',
-                'namxem': str(now.year),
+                'namxem': current_year,
+                'year_range': year_range,
             }
     else:
         # Load from GET parameters
@@ -183,7 +199,8 @@ def lasotuvi_new_result(request):
             'giosinh': request.GET.get('giosinh', '1'),
             'muigio': request.GET.get('muigio', '7'),
             'amlich': request.GET.get('amlich', 'off'),
-            'namxem': request.GET.get('namxem', str(now.year)),
+            'namxem': int(request.GET.get('namxem', str(current_year))),
+            'year_range': year_range,
         }
     return render(request, 'tuvi/result.html', context)
 
@@ -232,7 +249,7 @@ def save_laso(request):
         db = lapDiaBan(diaBan, ngaysinh, thangsinh, namsinh, giosinh,
                        1 if gioitinh == 'nam' else -1, duongLich, muigio)
         thienBan = lapThienBan(ngaysinh, thangsinh, namsinh,
-                               giosinh, 1 if gioitinh == 'nam' else -1, hoten, db)
+                               giosinh, 1 if gioitinh == 'nam' else -1, hoten, db, duongLich, muigio)
 
         # NOTE: Calculate lunar age if namxem is provided
         tuoiAmLich = thienBan.tinhTuoiAmLich(namxem) if namxem else None
@@ -267,6 +284,10 @@ def save_laso(request):
 
             # NOTE: Calculate and place Tứ Hóa Lưu Tiểu Vận based on Can of namxem
             _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
+
+            # NOTE: An tháng của năm xem theo phái Lưu Thái Tuế
+            # IMPORTANT: Use thienBan.thangAm (lunar month) not input thangsinh (may be solar)
+            _ = db.nhapThangLuuThaiTue(thienBan.thangAm, giosinh)
 
         # Tạo chart_data JSON
         chart_data = {
@@ -419,7 +440,7 @@ def update_laso(request):
         db = lapDiaBan(diaBan, laso.ngaysinh, laso.thangsinh, laso.namsinh, laso.giosinh,
                        1 if laso.gioitinh == 'nam' else -1, duongLich, laso.muigio)
         thienBan = lapThienBan(laso.ngaysinh, laso.thangsinh, laso.namsinh,
-                               laso.giosinh, 1 if laso.gioitinh == 'nam' else -1, laso.hoten, db)
+                               laso.giosinh, 1 if laso.gioitinh == 'nam' else -1, laso.hoten, db, duongLich, laso.muigio)
 
         # NOTE: Calculate lunar age if namxem is provided
         tuoiAmLich = thienBan.tinhTuoiAmLich(laso.namxem) if laso.namxem else None
@@ -454,6 +475,10 @@ def update_laso(request):
 
             # NOTE: Calculate and place Tứ Hóa Lưu Tiểu Vận based on Can of namxem
             _ = db.nhapSaoTuHoaLuuTieuVan(canNamXem)
+
+            # NOTE: An tháng của năm xem theo phái Lưu Thái Tuế
+            # IMPORTANT: Use thienBan.thangAm (lunar month) not input thangsinh (may be solar)
+            _ = db.nhapThangLuuThaiTue(thienBan.thangAm, laso.giosinh)
 
         # Tạo chart_data JSON
         laso.chart_data = {

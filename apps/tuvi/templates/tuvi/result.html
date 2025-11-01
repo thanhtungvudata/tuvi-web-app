@@ -110,7 +110,11 @@
 
                             <div class="edit-form-group">
                                 <label>Năm xem:</label>
-                                <input type="number" name="namxem" value="{{ namxem }}" placeholder="Nhập năm xem" min="1900" max="2100">
+                                <select name="namxem">
+                                    {% for year in year_range %}
+                                        <option value="{{ year }}" {% if year == namxem %}selected{% endif %}>{{ year }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
 
                             <!-- Hidden input to preserve laso_id when updating -->
@@ -151,7 +155,7 @@
                         <br>
                         <label class="option-label">
                             <input type="checkbox" id="hiencungtieuan">
-                            <span>Cung tiểu vận</span>
+                            <span>Cung tiểu vận (phái Lưu Thái Tuế)</span>
                         </label>
                         <br>
                         <label class="option-label">
@@ -299,10 +303,12 @@
                             document.querySelector('input[name="amlich"]').checked = urlParams.get('amlich') === 'on' ? true : (laso.amlich || false);
                             document.querySelector('select[name="muigio"]').value = urlParams.get('muigio') || laso.muigio || 7;
                             // NOTE: Ưu tiên namxem từ URL params (khi user thay đổi và click "Cập nhật lá số")
-                            const namxemInput = document.querySelector('input[name="namxem"]');
+                            const namxemSelect = document.querySelector('select[name="namxem"]');
                             const namxemFromUrl = urlParams.get('namxem');
-                            if (namxemInput) {
-                                namxemInput.value = namxemFromUrl || laso.namxem || '';
+                            if (namxemSelect) {
+                                // NOTE: namxem stored in chart_data.namXem, not laso.namxem
+                                const namxemFromChart = laso.chart_data?.namXem;
+                                namxemSelect.value = namxemFromUrl || namxemFromChart || '';
                             }
 
                             // Cập nhật trạng thái yêu thích cho nút
@@ -314,14 +320,20 @@
                             // Render lá số
                             // NOTE: Nếu có params trong URL (user vừa click "Cập nhật lá số"),
                             // thì tính lại lá số từ API với params mới
-                            const hasOtherParams = urlParams.get('hoten') || urlParams.get('namxem') ||
-                                                   urlParams.get('ngaysinh') || urlParams.get('giosinh');
+                            // Check if there are any params besides laso_id
+                            const allParams = new URLSearchParams(window.location.search);
+                            allParams.delete('laso_id');
+                            const hasOtherParams = allParams.toString().length > 0;
+
                             if (hasOtherParams) {
                                 // User vừa update thông tin, tính lại từ API
                                 const params = new URLSearchParams(window.location.search);
                                 // Xóa laso_id để API tính toán lại
                                 params.delete('laso_id');
                                 const apiUrl = '/api?' + params.toString();
+
+                                console.log('DEBUG: Calling API with params:', params.toString());
+                                console.log('DEBUG: amlich param:', params.get('amlich'));
 
                                 fetch(apiUrl)
                                     .then(response => response.json())
@@ -360,6 +372,44 @@
                         alert('Có lỗi xảy ra khi lập lá số. Vui lòng thử lại!');
                     });
             }
+
+            // NOTE: Restore checkbox states from localStorage and re-render if needed
+            const checkboxIds = ['hienphusao', 'hiencungdaivan', 'hiencungtieuan', 'hiensaoluudaivan', 'hiensaoluutieuan'];
+            let needsRerender = false;
+
+            checkboxIds.forEach(id => {
+                const checkbox = document.getElementById(id);
+                if (checkbox) {
+                    const savedState = localStorage.getItem(`checkbox_${id}`);
+                    if (savedState !== null) {
+                        const shouldBeChecked = savedState === 'true';
+                        if (checkbox.checked !== shouldBeChecked) {
+                            checkbox.checked = shouldBeChecked;
+                            needsRerender = true;
+                        }
+                    }
+                }
+            });
+
+            // NOTE: Re-render if checkbox states changed
+            if (needsRerender && window.currentLaSoData) {
+                setTimeout(() => {
+                    renderThapNhiCung(
+                        window.currentLaSoData.thapNhiCung,
+                        window.currentLaSoData.thienBan
+                    );
+                }, 100);
+            }
+
+            // NOTE: Save checkbox states to localStorage when changed
+            checkboxIds.forEach(id => {
+                const checkbox = document.getElementById(id);
+                if (checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        localStorage.setItem(`checkbox_${id}`, this.checked);
+                    });
+                }
+            });
         });
 
         // Xử lý nút Lưu đơn giản
@@ -401,11 +451,15 @@
 
         // Hàm mở modal lưu mới
         function openSaveModal() {
+            console.log('openSaveModal called');
+            console.log('modal element:', modal);
             // Load folders
             fetch('/api/folders/')
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Folders loaded:', data);
                     const select = document.getElementById('folder-select');
+                    console.log('folder-select element:', select);
                     // Xóa các option cũ (trừ 2 option đầu)
                     while (select.options.length > 2) {
                         select.remove(2);
@@ -418,7 +472,9 @@
                         select.appendChild(option);
                     });
                 });
+            console.log('Setting modal display to block');
             modal.style.display = 'block';
+            console.log('Modal should be visible now');
         }
 
         // Hàm xử lý cập nhật lá số
@@ -432,7 +488,7 @@
             const gioitinhSelect = document.querySelector('select[name="gioitinh"]');
             const amlichCheckbox = document.querySelector('input[name="amlich"]');
             const muigioSelect = document.querySelector('select[name="muigio"]');
-            const namxemInput = document.querySelector('input[name="namxem"]');
+            const namxemSelect = document.querySelector('select[name="namxem"]');
 
             const updateData = {
                 laso_id: currentLaso.id,
@@ -444,7 +500,7 @@
                 gioitinh: gioitinhSelect?.value || 'nam',
                 amlich: amlichCheckbox?.checked ? 'on' : 'off',
                 muigio: muigioSelect?.value || '7',
-                namxem: namxemInput?.value || null
+                namxem: namxemSelect?.value || null
             };
 
             // Gửi request cập nhật
@@ -524,7 +580,7 @@
             const gioitinhSelect = document.querySelector('select[name="gioitinh"]');
             const amlichCheckbox = document.querySelector('input[name="amlich"]');
             const muigioSelect = document.querySelector('select[name="muigio"]');
-            const namxemInput = document.querySelector('input[name="namxem"]');
+            const namxemSelect = document.querySelector('select[name="namxem"]');
 
             console.log('DEBUG - Form values:', {
                 hoten: hotenInput?.value,
@@ -535,7 +591,7 @@
                 gioitinh: gioitinhSelect?.value,
                 amlich: amlichCheckbox?.checked,
                 muigio: muigioSelect?.value,
-                namxem: namxemInput?.value
+                namxem: namxemSelect?.value
             });
 
             const saveData = {
@@ -548,7 +604,7 @@
                 gioitinh: gioitinhSelect?.value || 'nam',
                 amlich: amlichCheckbox?.checked ? 'on' : 'off',
                 muigio: muigioSelect?.value || '7',
-                namxem: namxemInput?.value || null
+                namxem: namxemSelect?.value || null
             };
 
             // Thêm folder info
