@@ -217,7 +217,7 @@ body {
 }
 
 .edit-form-group input[type="text"]:not(.year-input),
-.edit-form-group select:not(.date-select) {
+.edit-form-group select:not(.date-select):not(.year-select) {
     flex: 1;
     padding: 6px 8px;
     border: 1px solid #555;
@@ -261,7 +261,8 @@ body {
     font-weight: 500;
 }
 
-.date-select {
+.date-select,
+.year-select {
     width: 100%;
     padding: 6px 4px;
     font-size: 12px;
@@ -269,9 +270,13 @@ body {
     border-radius: 4px;
     background: #2d2d44;
     color: #e0e0e0;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
 }
 
-.date-select:focus {
+.date-select:focus,
+.year-select:focus {
     outline: none;
     border-color: #ff6b35;
     background: #363652;

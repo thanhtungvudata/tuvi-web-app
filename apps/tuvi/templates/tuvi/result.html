@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lá Số Tử Vi - Kết quả</title>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="{% static 'tuvi/style.css' %}?v=200" rel="stylesheet">
+    <link href="{% static 'tuvi/style.css' %}?v=203" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -362,7 +362,7 @@
                             document.querySelector('input[name="hoten"]').value = urlParams.get('hoten') || laso.hoten || '';
                             document.querySelector('select[name="ngaysinh"]').value = urlParams.get('ngaysinh') || laso.ngaysinh || '';
                             document.querySelector('select[name="thangsinh"]').value = urlParams.get('thangsinh') || laso.thangsinh || '';
-                            document.querySelector('input[name="namsinh"]').value = urlParams.get('namsinh') || laso.namsinh || '';
+                            document.querySelector('select[name="namsinh"]').value = urlParams.get('namsinh') || laso.namsinh || '';
                             document.querySelector('select[name="giosinh"]').value = urlParams.get('giosinh') || laso.giosinh || '';
                             document.querySelector('select[name="gioitinh"]').value = urlParams.get('gioitinh') || laso.gioitinh || '';
                             document.querySelector('input[name="amlich"]').checked = urlParams.get('amlich') === 'on' ? true : (laso.amlich || false);
@@ -594,7 +594,7 @@
             const hotenInput = document.querySelector('input[name="hoten"]');
             const ngaysinhSelect = document.querySelector('select[name="ngaysinh"]');
             const thangsinhSelect = document.querySelector('select[name="thangsinh"]');
-            const namsinhInput = document.querySelector('input[name="namsinh"]');
+            const namsinhSelect = document.querySelector('select[name="namsinh"]');
             const giosinhSelect = document.querySelector('select[name="giosinh"]');
             const gioitinhSelect = document.querySelector('select[name="gioitinh"]');
             const amlichCheckbox = document.querySelector('input[name="amlich"]');
@@ -609,7 +609,7 @@
                 hoten: hotenInput?.value || '',
                 ngaysinh: ngaysinhSelect?.value || '1',
                 thangsinh: thangsinhSelect?.value || '1',
-                namsinh: namsinhInput?.value || '2000',
+                namsinh: namsinhSelect?.value || '2000',
                 giosinh: giosinhSelect?.value || '1',
                 gioitinh: gioitinhSelect?.value || 'nam',
                 amlich: amlichCheckbox?.checked ? 'on' : 'off',
@@ -696,7 +696,7 @@
             const hotenInput = document.querySelector('input[name="hoten"]');
             const ngaysinhSelect = document.querySelector('select[name="ngaysinh"]');
             const thangsinhSelect = document.querySelector('select[name="thangsinh"]');
-            const namsinhInput = document.querySelector('input[name="namsinh"]');
+            const namsinhSelect = document.querySelector('select[name="namsinh"]');
             const giosinhSelect = document.querySelector('select[name="giosinh"]');
             const gioitinhSelect = document.querySelector('select[name="gioitinh"]');
             const amlichCheckbox = document.querySelector('input[name="amlich"]');
@@ -707,7 +707,7 @@
                 hoten: hotenInput?.value,
                 ngaysinh: ngaysinhSelect?.value,
                 thangsinh: thangsinhSelect?.value,
-                namsinh: namsinhInput?.value,
+                namsinh: namsinhSelect?.value,
                 giosinh: giosinhSelect?.value,
                 gioitinh: gioitinhSelect?.value,
                 amlich: amlichCheckbox?.checked,
@@ -720,7 +720,7 @@
                 hoten: hotenInput?.value || '',
                 ngaysinh: ngaysinhSelect?.value || '1',
                 thangsinh: thangsinhSelect?.value || '1',
-                namsinh: namsinhInput?.value || '2000',
+                namsinh: namsinhSelect?.value || '2000',
                 giosinh: giosinhSelect?.value || '1',
                 gioitinh: gioitinhSelect?.value || 'nam',
                 amlich: amlichCheckbox?.checked ? 'on' : 'off',

@@ -216,6 +216,7 @@ def lasotuvi_new_result(request):
     current_month = now.month
     current_day = now.day
     year_range = list(range(1900, 2101))
+    birth_year_range = list(range(1900, 2101))
 
     if laso_id:
         # Load from saved laso
@@ -235,6 +236,7 @@ def lasotuvi_new_result(request):
                 'namxem': current_year,
                 'amlichxem': 'off',
                 'year_range': year_range,
+                'birth_year_range': birth_year_range,
             }
         except SavedLaSo.DoesNotExist:
             # If laso not found, use default values
@@ -252,6 +254,7 @@ def lasotuvi_new_result(request):
                 'namxem': current_year,
                 'amlichxem': 'off',
                 'year_range': year_range,
+                'birth_year_range': birth_year_range,
             }
     else:
         # Load from GET parameters
@@ -269,6 +272,7 @@ def lasotuvi_new_result(request):
             'namxem': int(request.GET.get('namxem', str(current_year))),
             'amlichxem': request.GET.get('amlichxem', 'off'),
             'year_range': year_range,
+            'birth_year_range': birth_year_range,
         }
     return render(request, 'tuvi/result.html', context)
 
