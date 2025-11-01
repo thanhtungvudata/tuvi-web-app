@@ -162,15 +162,26 @@
                             <!-- Hidden input to preserve laso_id when updating -->
                             <input type="hidden" name="laso_id" id="hidden-laso-id" value="">
 
-                            <button type="submit" class="btn-edit-submit">Cập nhật lá số</button>
+                            <button type="submit" class="btn-edit-submit" id="btn-update-laso">Cập nhật lá số</button>
                         </form>
 
                         <script>
-                        // NOTE: Remove empty laso_id from form submission
+                        // NOTE: Intercept form submission to handle updates properly
                         document.getElementById('edit-form').addEventListener('submit', function(e) {
-                            const lasoIdInput = document.getElementById('hidden-laso-id');
-                            if (lasoIdInput && !lasoIdInput.value) {
-                                lasoIdInput.disabled = true;
+                            e.preventDefault(); // Prevent default form submission
+
+                            // Check if we have a saved laso
+                            if (currentLaso && currentLaso.id) {
+                                // Update existing laso using JavaScript
+                                handleUpdateLaso();
+                            } else {
+                                // New laso - submit form normally to calculate and display
+                                // Remove empty laso_id from submission
+                                const lasoIdInput = document.getElementById('hidden-laso-id');
+                                if (lasoIdInput && !lasoIdInput.value) {
+                                    lasoIdInput.disabled = true;
+                                }
+                                this.submit();
                             }
                         });
                         </script>
@@ -557,9 +568,14 @@
                 console.log('currentLaso.id:', currentLaso?.id);
                 console.log('Has currentLaso.id?', !!(currentLaso && currentLaso.id));
                 console.log('='.repeat(80));
+                console.log('DEBUG Save button clicked');
+                console.log('currentLasoId:', currentLasoId);
+                console.log('currentLaso:', currentLaso);
+                console.log('currentLaso.id:', currentLaso?.id);
+                console.log('currentLaso.name:', currentLaso?.name);
 
                 // Kiểm tra xem có đang xem lá số đã lưu không
-                if (currentLaso && currentLaso.id) {
+                if (currentLaso && currentLaso.id && currentLaso.name) {
                     // Hiển thị hộp thoại chọn: Lưu đè hoặc Lưu mới
                     const overwrite = confirm('Bạn muốn lưu đè lá số "' + currentLaso.name + '" hiện tại?\n\nChọn OK để lưu đè, Cancel để lưu thành lá số mới.');
 
@@ -572,6 +588,7 @@
                     }
                 } else {
                     // Lá số chưa lưu, mở modal lưu mới
+                    console.log('Opening save modal - laso not saved or currentLaso not loaded');
                     openSaveModal();
                 }
             });
@@ -656,9 +673,8 @@
             .then(data => {
                 if (data.success) {
                     alert('Đã cập nhật lá số "' + currentLaso.name + '" thành công!');
-                    // Reload trang với laso_id để load lại dữ liệu - force reload to clear cache
+                    // Reload trang với laso_id để load lại dữ liệu
                     window.location.href = `/result/?laso_id=${currentLaso.id}`;
-                    window.location.reload(true);
                 } else {
                     // NOTE: Hiển thị thông báo lỗi dễ hiểu hơn cho lỗi UNIQUE constraint
                     const errorMessage = data.message.includes('UNIQUE constraint') || data.message.includes('unique_together')
